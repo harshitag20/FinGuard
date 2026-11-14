@@ -1,0 +1,28 @@
+{
+  "name": "aquasentinel-backend",
+  "version": "1.0.0",
+  "description": "AquaSentinel - Enterprise Aquaculture Telemetry & AI Screening Microservice",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --noEmit",
+    "start": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@google/genai": "^1.40.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.14.0",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.2",
+    "vitest": "^5.0.5"
+  }
+}
