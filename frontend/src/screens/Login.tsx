@@ -11,6 +11,7 @@ import { evaluateMultiSpeciesCompatibility } from '../services/overlapEngine';
 import { getHighAccuracyLocation } from '../services/locationService';
 import { fetchWeatherByCoords, WeatherData } from '../services/weatherService';
 import { api } from '../services/apiService';
+import { I18N } from '../i18n/translations';
 
 interface LoginProps {
   onLogin: () => void;
@@ -31,6 +32,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const { setUser } = useUser();
   const { setPond } = usePond();
   const { lang, setLang } = useLanguage();
+  const strings = (I18N as any)[lang] || (I18N as any).hi || (I18N as any).en;
   
   const [step, setStep] = useState<OnboardingStep>('auth');
   const [authMethod, setAuthMethod] = useState<AuthMethod>('phone');
@@ -207,10 +209,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="flex justify-between items-center px-1">
           <div className="text-left">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">
-              Smart <span className="text-[#0066CC]">Onboarding</span>
+              {strings.smart_onboarding || 'Smart Onboarding'}
             </h1>
             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mt-1">
-              Step {getStepNumber()} of 4 • {step === 'species' ? 'Fish Species Details' : step === 'identity' ? 'Location & Weather' : step === 'auth' ? 'Farmer Sign In' : 'Pond Calibration'}
+              {step === 'species' ? (strings.step3_badge || 'Step 3 of 4 • Species Mix') :
+               step === 'identity' ? (strings.step2_badge || 'Step 2 of 4 • Location & Weather') :
+               step === 'auth' ? (strings.step1_badge || 'Step 1 of 4 • Farmer Sign In') :
+               (strings.step4_badge || 'Step 4 of 4 • Pond Specs')}
             </p>
           </div>
           <select 
@@ -248,8 +253,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       {authMethod === 'phone' ? <Smartphone size={20} /> : <Mail size={20} />}
                     </div>
                     <div>
-                      <h2 className="text-lg font-black text-slate-800 tracking-tight">Farmer Identity</h2>
-                      <p className="text-[10px] text-slate-400 font-medium">Verify your mobile number or email</p>
+                      <h2 className="text-lg font-black text-slate-800 tracking-tight">{strings.step1_title || 'Farmer Identity'}</h2>
+                      <p className="text-[10px] text-slate-400 font-medium">{strings.step1_sub || 'Verify your mobile number or email'}</p>
                     </div>
                   </div>
 
@@ -262,7 +267,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       }`}
                     >
                       <Phone size={13} />
-                      <span>Phone OTP</span>
+                      <span>{strings.phone_otp || 'Phone OTP'}</span>
                     </button>
                     <button 
                       onClick={() => { setAuthMethod('email'); setCodeSent(false); setOtp(''); }}
@@ -271,14 +276,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       }`}
                     >
                       <Mail size={13} />
-                      <span>Email</span>
+                      <span>{strings.email || 'Email'}</span>
                     </button>
                   </div>
                   
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-400 ml-1">
-                        {authMethod === 'phone' ? 'Mobile Number' : 'Email Address'}
+                        {authMethod === 'phone' ? (strings.mobile_label || 'Mobile Number') : (strings.email_label || 'Email Address')}
                       </label>
                       <div className="relative">
                         {authMethod === 'phone' ? (
@@ -306,7 +311,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     
                     {codeSent && (
                       <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Verification Code (Demo: 123456)</label>
+                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">{strings.code_label || 'Verification Code (Demo: 123456)'}</label>
                         <input 
                           type="text" 
                           maxLength={6}
@@ -332,7 +337,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     >
                       {isLoading ? <Loader2 className="animate-spin" size={18} /> : (
                         <>
-                          <span>{codeSent ? "Verify & Next" : "Continue"}</span>
+                          <span>{codeSent ? (strings.verify_next_btn || "Verify & Next") : (strings.continue_btn || "Continue")}</span>
                           <ArrowRight size={16} />
                         </>
                       )}
@@ -345,7 +350,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         aria-label="DEMO SIGIN"
                         className="w-full bg-slate-100 text-slate-700 py-3 rounded-2xl font-black uppercase tracking-wider text-xs flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all border border-slate-200/80"
                       >
-                        <span>DEMO SIGN IN</span>
+                        <span>{strings.demo_signin_btn || 'DEMO SIGN IN'}</span>
                       </button>
                     )}
                   </div>
@@ -360,33 +365,33 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       <User size={20} />
                     </div>
                     <div>
-                      <h2 className="text-lg font-black text-slate-800 tracking-tight">Farm Location & Weather</h2>
-                      <p className="text-[10px] text-slate-400 font-medium">GPS location & live meteorological tracking</p>
+                      <h2 className="text-lg font-black text-slate-800 tracking-tight">{strings.step2_title || 'Farm Location & Weather'}</h2>
+                      <p className="text-[10px] text-slate-400 font-medium">{strings.step2_sub || 'GPS location & live meteorological tracking'}</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Farmer / Farm Name</label>
+                      <label className="text-[10px] font-black uppercase text-slate-700 ml-1">{strings.farmer_name_label || 'Farmer / Farm Name'}</label>
                       <input 
                         type="text" 
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Rajesh Patel (Godavari Farm)" 
+                        placeholder={strings.farmer_name_placeholder || "e.g. Rajesh Patel (Godavari Farm)"} 
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 text-xs font-bold text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
 
                     <div className="space-y-1">
                       <div className="flex justify-between items-center mb-0.5">
-                        <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Farm GPS Region</label>
+                        <label className="text-[10px] font-black uppercase text-slate-700 ml-1">{strings.farm_gps_label || 'Farm GPS Region'}</label>
                         <button 
                           onClick={handleAutoDetectLocation}
                           disabled={isDetectingLocation}
                           className="flex items-center space-x-1 text-[10px] font-black text-blue-600 uppercase tracking-wider hover:text-blue-700"
                         >
                           {isDetectingLocation ? <Loader2 size={11} className="animate-spin" /> : <Crosshair size={11} />}
-                          <span>{isDetectingLocation ? 'Locating...' : 'Refresh GPS'}</span>
+                          <span>{isDetectingLocation ? (strings.locating || 'Locating...') : (strings.refresh_gps || 'Refresh GPS')}</span>
                         </button>
                       </div>
                       <div className="relative">
@@ -408,10 +413,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                           <Thermometer size={16} className="text-blue-600" />
                           <div>
                             <span className="font-extrabold text-slate-800 text-xs">
-                              {weather ? `${weather.temp}°C Ambient` : 'Connecting to Open-Meteo...'}
+                              {weather ? `${weather.temp}°C ${strings.ambient_weather || 'Ambient'}` : (strings.connecting_meteo || 'Connecting to Open-Meteo...')}
                             </span>
                             <span className="text-[10px] text-slate-500 block">
-                              {weather ? `${weather.condition} • ${weather.humidity}% Humidity` : 'Retrieving local climate'}
+                              {weather ? `${weather.condition} • ${weather.humidity}% ${strings.humidity || 'Humidity'}` : 'Retrieving local climate'}
                             </span>
                           </div>
                         </div>
@@ -421,8 +426,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       </div>
                       {weather && (
                         <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-blue-100 text-[10px] text-slate-600">
-                          <div>Pressure: <strong>{weather.pressure} hPa</strong></div>
-                          <div>Wind: <strong>{weather.windSpeed} km/h</strong></div>
+                          <div>{strings.pressure || 'Pressure'}: <strong>{weather.pressure} hPa</strong></div>
+                          <div>{strings.wind || 'Wind'}: <strong>{weather.windSpeed} km/h</strong></div>
                         </div>
                       )}
                     </div>
@@ -442,7 +447,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         }}
                         className="flex-1 bg-blue-600 text-white py-3.5 rounded-2xl font-black uppercase tracking-wider text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
                       >
-                        <span>Next: Select Fish Species</span>
+                        <span>{strings.next_species || 'Next: Select Fish Species'}</span>
                         <ArrowRight size={16} />
                       </button>
                     </div>
@@ -459,8 +464,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         <Fish size={18} />
                       </div>
                       <div>
-                        <h2 className="text-base font-black text-slate-800 tracking-tight leading-tight">Cultivated Fish Details</h2>
-                        <p className="text-[10px] text-slate-400 font-medium">Select all fish species you cultivate</p>
+                        <h2 className="text-base font-black text-slate-800 tracking-tight leading-tight">{strings.step3_title || 'Select Cultivated Fish Species'}</h2>
+                        <p className="text-[10px] text-slate-400 font-medium">{strings.step3_sub || 'Select all fish species you cultivate'}</p>
                       </div>
                     </div>
                     {/* Live location badge */}
@@ -476,7 +481,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
                   {/* Polyculture Presets */}
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Polyculture Presets</span>
+                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">{strings.quick_presets || 'Polyculture Presets:'}</span>
                     <div className="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
                       {SPECIES_PRESETS.map((p, idx) => (
                         <button
@@ -497,7 +502,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       type="text" 
                       value={speciesSearch}
                       onChange={(e) => setSpeciesSearch(e.target.value)}
-                      placeholder="Search species (Rohu, Catla, Mrigal, Tilapia, Scampi)..." 
+                      placeholder={strings.search_species || "Search species (Rohu, Catla, Mrigal, Tilapia, Scampi)..."} 
                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2 pl-9 pr-3 text-xs font-bold text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500"
                     />
                   </div>
@@ -631,7 +636,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       onClick={() => setStep('pond')}
                       className="flex-1 bg-blue-600 text-white py-3.5 rounded-2xl font-black uppercase tracking-wider text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
                     >
-                      <span>Next: Pond Setup</span>
+                      <span>{strings.next_pond_specs || 'Next: Pond Setup'}</span>
                       <ArrowRight size={16} />
                     </button>
                   </div>
@@ -646,15 +651,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       <Fish size={20} />
                     </div>
                     <div>
-                      <h2 className="text-lg font-black text-slate-800 tracking-tight">Pond Calibration</h2>
-                      <p className="text-[10px] text-slate-400 font-medium">Finalize pond sizing and species baseline</p>
+                      <h2 className="text-lg font-black text-slate-800 tracking-tight">{strings.step4_title || 'Pond Calibration'}</h2>
+                      <p className="text-[10px] text-slate-400 font-medium">{strings.step4_sub || 'Finalize pond sizing and species baseline'}</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Pond Area</label>
+                        <label className="text-[10px] font-black uppercase text-slate-700 ml-1">{strings.estimated_pond_area || 'Pond Area'}</label>
                         <select 
                           value={pondSize}
                           onChange={(e) => setPondSize(e.target.value)}
@@ -669,7 +674,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-700 ml-1">Culture System</label>
+                        <label className="text-[10px] font-black uppercase text-slate-700 ml-1">{strings.culture_system || 'Culture System'}</label>
                         <select 
                           value={cultureType}
                           onChange={(e) => setCultureType(e.target.value)}
@@ -686,7 +691,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
                     {/* Quick Pond Area Selector Chips */}
                     <div className="space-y-1">
-                      <span className="text-[9px] font-black uppercase text-slate-500 ml-1">Quick Select Area</span>
+                      <span className="text-[9px] font-black uppercase text-slate-500 ml-1">{strings.quick_select_area || 'Quick Select Area'}</span>
                       <div className="flex flex-wrap gap-1.5">
                         {[
                           { label: '0.5 Ha (1.2 Ac)', val: '0.5 Hectare' },
@@ -712,7 +717,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     </div>
 
                     <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200/60 space-y-1 text-xs">
-                      <span className="font-extrabold text-emerald-900 block text-xs">Calibrated Cultivation Portfolio</span>
+                      <span className="font-extrabold text-emerald-900 block text-xs">{strings.calibrated_portfolio || 'Calibrated Cultivation Portfolio'}</span>
                       <p className="text-[11px] text-emerald-800 font-medium">
                         {selectedSpeciesIds.map(id => SPECIES_CATALOG[id]?.commonName || id).join(', ')}
                       </p>
@@ -734,7 +739,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       >
                         {isLoading ? <Loader2 className="animate-spin" size={18} /> : (
                           <>
-                            <span>Start Farming</span>
+                            <span>{strings.complete_setup || 'Start Farming'}</span>
                             <CheckCircle2 size={16} />
                           </>
                         )}

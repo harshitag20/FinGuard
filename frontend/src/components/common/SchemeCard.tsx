@@ -29,7 +29,7 @@ export const SchemeCard: React.FC<SchemeCardProps> = ({
   onViewDocuments
 }) => {
   const { lang } = useLanguage();
-  const strings = I18N[lang as 'en' | 'hi'] || I18N.en;
+  const strings = (I18N as any)[lang] || (I18N as any).hi || (I18N as any).en;
 
   const tagLabel = 
     scheme.tag === 'SUBSIDY' ? strings.tag_subsidy :

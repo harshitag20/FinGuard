@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
   const { pond, setPond } = usePond();
   const { user } = useUser();
   const { navigate } = useNavigation();
-  const strings = I18N[lang as 'en' | 'hi'] || I18N.en;
+  const strings = (I18N as any)[lang] || (I18N as any).hi || (I18N as any).en;
 
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [alerts, setAlerts] = useState<TelemetryAlert[]>([]);
@@ -155,17 +155,26 @@ const Dashboard: React.FC = () => {
 
         {/* Right side: Language Switcher & Weather Chip */}
         <div className="flex items-center space-x-2">
-          {/* Language Switcher Pill */}
-          <button
-            type="button"
-            onClick={() => setLang(lang === 'hi' ? ('en' as any) : ('hi' as any))}
-            className="min-h-[44px] px-3 py-1.5 rounded-xl border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-wider flex items-center space-x-1 shadow-xs hover:bg-blue-100 transition-all active:scale-95"
-            aria-label="Switch Language"
-            title="Switch Language"
-          >
-            <Globe size={14} />
-            <span>{strings.lang_toggle}</span>
-          </button>
+          {/* Language Switcher Dropdown */}
+          <div className="relative">
+            <select
+              value={lang}
+              onChange={(e) => {
+                const newLang = e.target.value as any;
+                setLang(newLang);
+                try { localStorage.setItem('finguard_lang', newLang); } catch {}
+              }}
+              className="min-h-[44px] px-2.5 py-1.5 rounded-xl border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-wider shadow-xs hover:bg-blue-100 dark:hover:bg-blue-900/60 cursor-pointer outline-none transition-all"
+              aria-label="Switch Language"
+            >
+              <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+              <option value="te">తెలుగు</option>
+              <option value="bn">বাংলা</option>
+              <option value="mr">मराठी</option>
+              <option value="ta">தமிழ்</option>
+            </select>
+          </div>
 
           {/* Weather Chip */}
           {weather && (

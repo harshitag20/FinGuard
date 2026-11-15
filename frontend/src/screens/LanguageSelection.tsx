@@ -23,12 +23,12 @@ const LanguageSelection: React.FC<LanguageSelectionProps> = ({ onSelect }) => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col p-8 justify-center items-center">
       <div className="w-full max-w-sm space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <div className="text-center space-y-3">
-          <div className="w-20 h-20 bg-blue-600 rounded-[2.5rem] flex items-center justify-center text-white mx-auto shadow-xl shadow-blue-200 mb-6">
+        <div className="text-center space-y-2">
+          <div className="w-20 h-20 bg-blue-600 rounded-[2.5rem] flex items-center justify-center text-white mx-auto shadow-xl shadow-blue-200 mb-4">
             <Languages size={40} />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Select Language</h1>
-          <p className="text-slate-400 font-medium">Choose your preferred language for farming</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">भाषा चुनें • Select Language</h1>
+          <p className="text-xs text-slate-500 font-semibold">अपनी खेती की भाषा चुनें • Choose your farming language</p>
         </div>
 
         <div className="space-y-4">

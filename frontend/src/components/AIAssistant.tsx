@@ -61,7 +61,15 @@ const AIAssistant: React.FC = () => {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-IN'; 
+      const langMap: Record<string, string> = {
+        hi: 'hi-IN',
+        te: 'te-IN',
+        bn: 'bn-IN',
+        mr: 'mr-IN',
+        ta: 'ta-IN',
+        en: 'en-IN'
+      };
+      recognitionRef.current.lang = langMap[lang] || 'en-IN'; 
 
       recognitionRef.current.onresult = (event: any) => {
         const text = event.results[0][0].transcript;
@@ -84,7 +92,7 @@ const AIAssistant: React.FC = () => {
       }
       window.speechSynthesis.cancel();
     };
-  }, []);
+  }, [lang]);
 
   const classifyProvenance = (text: string, toolsUsed?: string[]): ProvenanceInfo => {
     const lower = text.toLowerCase();

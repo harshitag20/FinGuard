@@ -50,7 +50,15 @@ export const ListenButton: React.FC<ListenButtonProps> = ({
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-IN';
+    const langMap: Record<string, string> = {
+      hi: 'hi-IN',
+      te: 'te-IN',
+      bn: 'bn-IN',
+      mr: 'mr-IN',
+      ta: 'ta-IN',
+      en: 'en-IN'
+    };
+    utterance.lang = langMap[lang] || 'en-IN';
     utterance.rate = 0.95; // Slightly slower for low-literacy clarity
     utterance.pitch = 1.0;
 
@@ -61,7 +69,7 @@ export const ListenButton: React.FC<ListenButtonProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
-  const strings = I18N[lang as 'en' | 'hi'] || I18N.en;
+  const strings = (I18N as any)[lang] || (I18N as any).hi || (I18N as any).en;
   const label = isPlaying ? strings.stop_listening : strings.listen;
 
   return (

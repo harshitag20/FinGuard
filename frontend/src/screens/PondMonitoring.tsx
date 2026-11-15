@@ -21,7 +21,7 @@ const PondMonitoring: React.FC = () => {
   const { theme } = useTheme();
   const { user } = useUser();
   const { lang } = useLanguage();
-  const strings = I18N[lang as 'en' | 'hi'] || I18N.en;
+  const strings = (I18N as any)[lang] || (I18N as any).hi || (I18N as any).en;
 
   const [simState, setSimState] = useState<SimulationState | null>(null);
   const [alerts, setAlerts] = useState<TelemetryAlert[]>([]);

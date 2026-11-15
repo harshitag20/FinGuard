@@ -8,9 +8,11 @@ import Profile from './screens/Profile';
 import Schemes from './screens/Schemes';
 import Login from './screens/Login';
 import SplashScreen from './screens/SplashScreen';
+import LanguageSelection from './screens/LanguageSelection';
 import AIAssistant from './components/AIAssistant';
 import TutorialOverlay from './components/TutorialOverlay';
 import { COLORS, TRANSLATIONS } from './constants';
+import { I18N } from './i18n/translations';
 import { api } from './services/apiService';
 
 interface LanguageContextType {
@@ -78,6 +80,7 @@ export const usePond = () => {
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
+  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -139,13 +142,14 @@ const App: React.FC = () => {
   }, [theme]);
 
   const t = (key: string) => {
-    return TRANSLATIONS[lang]?.[key] || TRANSLATIONS.en[key] || key;
+    return I18N[lang]?.[key] || I18N.en?.[key] || TRANSLATIONS[lang]?.[key] || TRANSLATIONS.en[key] || key;
   };
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   const restartOnboarding = () => {
     setIsOnboarded(false);
+    setHasSelectedLanguage(false);
   };
 
   const renderScreen = () => {
@@ -170,7 +174,22 @@ const App: React.FC = () => {
     );
   }
 
-  // 2. Just after the first FinGuard page, the Smart Onboarding page pops up!
+  // 2. Before launching Step 1, ask for the farmer's language:
+  if (!isOnboarded && !hasSelectedLanguage) {
+    return (
+      <LanguageSelection
+        onSelect={(selectedLang: Language) => {
+          setLang(selectedLang);
+          try {
+            localStorage.setItem('finguard_lang', selectedLang);
+          } catch {}
+          setHasSelectedLanguage(true);
+        }}
+      />
+    );
+  }
+
+  // 3. Smart Onboarding in the selected language!
   if (!isOnboarded) {
     return (
       <LanguageContext.Provider value={{ lang, setLang, t }}>
