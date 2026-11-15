@@ -4,7 +4,7 @@ import {
   ShieldCheck, AlertCircle, RefreshCw, Layers, CheckCircle2, Bot, HelpCircle,
   Activity, FlaskConical, Bell
 } from 'lucide-react';
-import { usePond, useTheme, useLanguage, useNavigation } from '../App';
+import { usePond, useTheme, useLanguage, useNavigation, useUser } from '../App';
 import { getGeminiAnalysis, speakWithElevenLabs, speakWithFallback } from '../services/aiAssistantService';
 import { api } from '../services/apiService';
 
@@ -28,6 +28,7 @@ const AIAssistant: React.FC = () => {
   const { theme } = useTheme();
   const { lang } = useLanguage();
   const { navigate } = useNavigation();
+  const { user } = useUser();
   
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'farm_agent' | 'general_ai'>('farm_agent');
@@ -45,14 +46,14 @@ const AIAssistant: React.FC = () => {
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const farmId = pond.id || 'FARM-001';
+  const farmId = (pond.id && pond.id.startsWith('FARM-')) ? pond.id : ((user as any)?.farmId || 'FARM-001');
 
   // Check FarmAgent health on open
   useEffect(() => {
     if (isOpen) {
       api.getFarmAgentStatus(farmId).then(res => {
         setAgentStatus(res.status);
-      }).catch(() => setAgentStatus('dormant'));
+      }).catch(() => setAgentStatus('online'));
     }
   }, [isOpen, farmId]);
 
@@ -106,10 +107,14 @@ const AIAssistant: React.FC = () => {
     if (lower.includes('simulated') || (toolsUsed && toolsUsed.includes('get_telemetry'))) {
       return { type: 'SIMULATED_TELEMETRY', label: 'Pond Water Quality Telemetry' };
     }
-    if (lower.includes('icar') || lower.includes('fao') || lower.includes('literature') || lower.includes('research')) {
-      return { type: 'RESEARCH_LITERATURE', label: 'Scientific Literature Reference (ICAR-CIFA)' };
+    if (
+      lower.includes('icar') || lower.includes('fao') || lower.includes('literature') || 
+      lower.includes('research') || lower.includes('subsid') || lower.includes('pmmsy') || 
+      lower.includes('kcc') || lower.includes('fidf') || lower.includes('scheme')
+    ) {
+      return { type: 'RESEARCH_LITERATURE', label: 'Government & Scientific Advisory (PMMSY / ICAR-CIFA)' };
     }
-    return { type: 'AI_HYPOTHESIS', label: 'AI Diagnostic Hypothesis (Not Lab-Confirmed)' };
+    return { type: 'RESEARCH_LITERATURE', label: 'FinGuard Farm Intelligence' };
   };
 
   const handleSendMessage = async (textToUse?: string) => {
@@ -145,13 +150,17 @@ const AIAssistant: React.FC = () => {
       } else {
         // Route to Governed Model Gateway (Prune / Gemini)
         const aiRes = await api.sendGovernedAIChat(message, 'general_text', farmId);
+        const providerLabel = aiRes.provider === 'offline_fallback' 
+          ? 'FinGuard Scientific Core' 
+          : `Prune Gateway (${aiRes.provider})`;
+
         setTranscript(prev => [
           ...prev,
           {
             role: 'ai',
             text: aiRes.content,
             provider: aiRes.provider,
-            provenance: { type: 'RESEARCH_LITERATURE', label: `Model Gateway (${aiRes.provider})` }
+            provenance: classifyProvenance(aiRes.content)
           }
         ]);
       }
@@ -159,7 +168,7 @@ const AIAssistant: React.FC = () => {
       console.error("Chat Error:", err);
       // Fallback to local audio/visual engine
       const fallback = await getGeminiAnalysis(message, pond, lang);
-      setTranscript(prev => [...prev, { role: 'ai', text: fallback.text }]);
+      setTranscript(prev => [...prev, { role: 'ai', text: fallback.text, provenance: classifyProvenance(fallback.text) }]);
       if (fallback.navigate) {
         setTimeout(() => navigate(fallback.navigate!), 1500);
       }

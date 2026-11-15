@@ -36,9 +36,9 @@ export const getGeminiAnalysis = async (query: string, pond: PondConfig, current
     };
   }
 
-  if (q.includes('subsidy') || q.includes('scheme') || q.includes('pmmsy') || q.includes('loan') || q.includes('government')) {
+  if (q.includes('subsid') || q.includes('scheme') || q.includes('pmmsy') || q.includes('loan') || q.includes('govern') || q.includes('financ')) {
     return {
-      text: "Opening Government Aquaculture Schemes for subsidy and financial assistance programs.",
+      text: "🏛️ Government Subsidies & Schemes for Aquaculture in India:\n\n• PMMSY: 40% capital subsidy (60% for SC/ST and Women) for pond excavation, biofloc, aerators & seed.\n• KCC: Working capital loan up to ₹2 Lakhs at effective 4% annual interest rate.\n• FIDF: Concessional finance with 3% interest discount for commercial equipment and aerators.\n\nOpening the Schemes tab so you can view the complete details and generate your application checklist.",
       navigate: Screen.SCHEMES
     };
   }

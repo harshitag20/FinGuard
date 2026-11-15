@@ -437,8 +437,14 @@ export const api = {
       return data;
     }
 
+    const q = prompt.toLowerCase();
+    let fallbackText = "FinGuard Advisory: Maintain pond dissolved oxygen above 5.0 mg/L and test pH daily at sunrise. You can check the Schemes screen for PMMSY 40-60% subsidies.";
+    if (q.includes('subsid') || q.includes('scheme') || q.includes('pmmsy') || q.includes('kcc') || q.includes('loan') || q.includes('govern')) {
+      fallbackText = "🏛️ Government Subsidies & Schemes for Fish Farmers:\n• PMMSY: 40% capital subsidy (60% for SC/ST/Women) for pond construction, biofloc, aerators and inputs.\n• KCC: Working capital loan up to ₹2 Lakhs at effective 4% annual interest rate.\n• FIDF: Concessional finance with 3% interest discount for modern equipment and aerators.\n\nVisit the 'Gov Subsidies' tab in the bottom bar to generate your application checklist!";
+    }
+
     return {
-      content: 'FinGuard Advisory: Maintain pond dissolved oxygen above 5.0 mg/L and test pH daily at sunrise.',
+      content: fallbackText,
       provider: 'offline_fallback',
       model: 'finguard-scientific-rules-v1'
     };
