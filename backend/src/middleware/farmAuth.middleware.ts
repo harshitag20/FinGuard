@@ -59,9 +59,7 @@ export const authorizeFarmAccess = (req: Request, res: Response, next: NextFunct
   // allow tenant farms matching authorized set or beginning with standard tenant prefixes
   const normalizedRequested = farmId.trim().toUpperCase();
   const isAuthorized = authorizedFarms.has(normalizedRequested) ||
-                       authorizedFarms.has(farmId) ||
-                       normalizedRequested.startsWith('FARM-001') ||
-                       normalizedRequested.startsWith('POND-');
+                       authorizedFarms.has(farmId);
 
   if (!isAuthorized) {
     res.status(403).json({

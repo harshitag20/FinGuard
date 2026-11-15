@@ -36,8 +36,10 @@ router.post('/ponds', userController.savePond);
 router.get('/ponds/:id/telemetry', userController.getPondTelemetry);
 
 router.get('/alerts', simulationController.getAlerts);
+router.post('/alerts/clear', simulationController.clearAlerts);
 router.post('/alerts/:alertId/dismiss', simulationController.dismissAlert);
 
+router.get('/telemetry/history', simulationController.getHistory);
 router.get('/telemetry/history/:pondId', simulationController.getHistory);
 
 router.get('/datasets', analyticsController.getDatasets);

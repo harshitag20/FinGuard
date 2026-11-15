@@ -389,7 +389,11 @@ class ResearchRepository:
         # Load curated literature from sample_research_sources.json
         sources_file = self.seed_dir / "sample_research_sources.json"
         if not sources_file.exists():
-            return []
+            fallback = Path(__file__).resolve().parent.parent.parent / "data" / "seed" / "sample_research_sources.json"
+            if fallback.exists():
+                sources_file = fallback
+            else:
+                return []
         with open(sources_file, "r", encoding="utf-8") as f:
             sources = json.load(f)
         

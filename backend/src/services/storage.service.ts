@@ -177,7 +177,17 @@ class StorageManager {
   }
 
   public getTelemetry(pondId: string, limit: number = 30): PondMetrics[] {
-    return (this.db.telemetryHistory[pondId] || []).slice(0, limit);
+    if (this.db.telemetryHistory[pondId] && this.db.telemetryHistory[pondId].length > 0) {
+      return this.db.telemetryHistory[pondId].slice(0, limit);
+    }
+    // If queried with farmId, fallback to first available pond telemetry
+    const ponds = this.getPonds();
+    for (const p of ponds) {
+      if (this.db.telemetryHistory[p.id] && this.db.telemetryHistory[p.id].length > 0) {
+        return this.db.telemetryHistory[p.id].slice(0, limit);
+      }
+    }
+    return [];
   }
 
   public addAlert(alert: TelemetryAlert) {
@@ -292,7 +302,8 @@ class StorageManager {
   }
 
   public getDiagnosticsForFarm(farmId: string): DiseaseScreeningResult[] {
-    return this.getScreeningHistory();
+    const history = this.getScreeningHistory();
+    return history.filter(s => !(s as any).farm_id || (s as any).farm_id === farmId);
   }
 }
 

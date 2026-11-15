@@ -5,7 +5,15 @@ import { RequestCategory } from '../../../FinGuard-PruneIntegration/typescript/s
 export const aiChatController = {
   chat: async (req: Request, res: Response) => {
     try {
-      const { prompt, category, farmId, containsFarmTelemetry } = req.body;
+      const {
+        prompt,
+        category,
+        farmId,
+        containsFarmTelemetry,
+        hasImages,
+        hasToolCalls,
+        isVoiceSession
+      } = req.body;
 
       if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ success: false, error: "Field 'prompt' is required." });
@@ -25,7 +33,10 @@ export const aiChatController = {
         category: reqCategory,
         prompt,
         farmId,
-        containsFarmTelemetry: Boolean(containsFarmTelemetry)
+        containsFarmTelemetry: Boolean(containsFarmTelemetry),
+        hasImages: Boolean(hasImages),
+        hasToolCalls: Boolean(hasToolCalls),
+        isVoiceSession: Boolean(isVoiceSession)
       });
 
       res.json({

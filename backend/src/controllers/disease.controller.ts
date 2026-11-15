@@ -39,6 +39,8 @@ export const diseaseController = {
       };
 
       const screeningResult = await geminiScreeningService.performScreening(screeningReq);
+      (screeningResult as any).farm_id = req.body.farmId || req.body.farm_id || 'FARM-001';
+      (screeningResult as any).pond_id = pondId || 'POND-01';
       storage.saveScreeningResult(screeningResult);
 
       res.json({ success: true, result: screeningResult });
