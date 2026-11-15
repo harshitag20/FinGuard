@@ -220,27 +220,49 @@ const AIAssistant: React.FC = () => {
 
   if (!isOpen) {
     return (
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-28 right-6 z-[70] w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full flex items-center justify-center p-1 shadow-2xl shadow-blue-500/40 active:scale-90 hover:scale-105 transition-all group overflow-hidden border-2 border-white/90"
-        title="Ask Fin - FinGuard AI Agent"
-        aria-label="Open Fin AI Agent"
-      >
-        <img 
-          src="/mascot.png" 
-          alt="Fin Mascot" 
-          className="w-full h-full object-contain rounded-full group-hover:rotate-6 transition-transform"
-        />
-        <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
-      </button>
+      <div className="fixed bottom-28 right-6 z-[70] flex flex-col items-end pointer-events-auto select-none">
+        {/* Attention-grabbing message bubble over Finn */}
+        <div 
+          onClick={() => setIsOpen(true)}
+          className="mb-2.5 cursor-pointer animate-bounce transform transition-transform hover:scale-105 active:scale-95"
+          role="button"
+          tabIndex={0}
+          aria-label="Open Finn AI Assistant"
+        >
+          <div className="relative bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-1.5 rounded-2xl shadow-xl border-2 border-blue-400/60 dark:border-blue-600 flex items-center space-x-1.5">
+            <span className="text-xs font-black tracking-tight text-blue-600 dark:text-blue-400 whitespace-nowrap">
+              Hi , I am Finn 👋
+            </span>
+            {/* Pointer tail pointing down towards Finn mascot button */}
+            <div className="absolute -bottom-1.5 right-5 w-3 h-3 bg-white dark:bg-slate-800 border-r-2 border-b-2 border-blue-400/60 dark:border-blue-600 rotate-45 transform"></div>
+          </div>
+        </div>
+
+        {/* Floating Mascot Button */}
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full flex items-center justify-center p-1 shadow-2xl shadow-blue-500/40 active:scale-90 hover:scale-105 transition-all group overflow-hidden border-2 border-white/90 relative"
+          title="Ask Finn - FinGuard AI Agent"
+          aria-label="Open Finn AI Agent"
+        >
+          <img 
+            src="/mascot.png" 
+            alt="Finn Mascot" 
+            className="w-full h-full object-contain rounded-full group-hover:rotate-6 transition-transform"
+          />
+          <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+        </button>
+      </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col p-3 sm:p-6 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex flex-col p-2 sm:p-4 animate-in fade-in duration-300">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsOpen(false)} />
       
-      <div className={`mt-auto w-full max-w-lg mx-auto rounded-[2.5rem] p-4 sm:p-5 shadow-2xl relative animate-in slide-in-from-bottom-20 duration-500 border ${theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+      <div className={`mt-auto w-full max-w-lg mx-auto rounded-[2.5rem] p-4 sm:p-5 shadow-2xl relative animate-in slide-in-from-bottom-20 duration-500 border flex flex-col max-h-[88vh] ${
+        theme === 'dark' ? 'bg-[#0f172a] border-white/10 text-white' : 'bg-white border-slate-100 text-slate-900'
+      }`}>
         
         {/* Header with Mascot in Top Left */}
         <div className="flex justify-between items-center mb-3">
@@ -249,7 +271,7 @@ const AIAssistant: React.FC = () => {
             <div className="relative shrink-0">
               <img 
                 src="/mascot.png" 
-                alt="Fin Mascot" 
+                alt="Finn Mascot" 
                 className="w-10 h-10 rounded-full object-contain bg-blue-100 p-0.5 border border-blue-200 shadow-sm"
               />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
@@ -257,7 +279,7 @@ const AIAssistant: React.FC = () => {
             <div>
               <div className="flex items-center space-x-2">
                 <h3 className={`text-xs font-black uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-                  Fin • {activeTab === 'farm_agent' ? `Farm Intelligence [${farmId}]` : 'Governed Model Gateway'}
+                  Finn • {activeTab === 'farm_agent' ? `Farm Intelligence [${farmId}]` : 'Governed Model Gateway'}
                 </h3>
                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
                   agentStatus === 'online' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
@@ -265,7 +287,7 @@ const AIAssistant: React.FC = () => {
                   {agentStatus === 'online' ? 'Agent Live' : 'Standby'}
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium">
+              <p className={`text-[10px] font-medium ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                 {activeTab === 'farm_agent' ? 'Maritime micro-VM persistent memory' : 'Prune model policy & receipt validation'}
               </p>
             </div>
@@ -276,13 +298,15 @@ const AIAssistant: React.FC = () => {
         </div>
 
         {/* Tab Switcher */}
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-3 text-[11px] font-black uppercase tracking-wider">
+        <div className={`grid grid-cols-2 gap-1.5 p-1 rounded-2xl mb-3 text-[11px] font-black uppercase tracking-wider ${
+          theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'
+        }`}>
           <button
             onClick={() => setActiveTab('farm_agent')}
             className={`py-2 rounded-xl transition-all ${
               activeTab === 'farm_agent' 
-                ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700'
+                ? (theme === 'dark' ? 'bg-slate-700 text-blue-400 shadow-sm' : 'bg-white text-blue-600 shadow-sm') 
+                : (theme === 'dark' ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')
             }`}
           >
             Farm Agent
@@ -291,8 +315,8 @@ const AIAssistant: React.FC = () => {
             onClick={() => setActiveTab('general_ai')}
             className={`py-2 rounded-xl transition-all ${
               activeTab === 'general_ai' 
-                ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700'
+                ? (theme === 'dark' ? 'bg-slate-700 text-blue-400 shadow-sm' : 'bg-white text-blue-600 shadow-sm') 
+                : (theme === 'dark' ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')
             }`}
           >
             Prune Gateway
@@ -301,96 +325,118 @@ const AIAssistant: React.FC = () => {
 
         {/* Research Notification Banner */}
         {researchNotice && (
-          <div className="p-2.5 mb-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center space-x-2 text-xs text-blue-700 dark:text-blue-300 border border-blue-200/50">
+          <div className={`p-2.5 mb-3 rounded-xl flex items-center space-x-2 text-xs border ${
+            theme === 'dark' ? 'bg-blue-950/40 text-blue-300 border-blue-900/50' : 'bg-blue-50 text-blue-700 border-blue-200/50'
+          }`}>
             <Loader2 size={14} className="animate-spin shrink-0 text-blue-500" />
             <span className="text-[10px] font-bold">{researchNotice}</span>
           </div>
         )}
 
         {/* Chat Transcript Area */}
-        <div className="max-h-[380px] sm:max-h-[420px] overflow-y-auto mb-3 space-y-3.5 no-scrollbar flex flex-col pr-1">
+        <div className="max-h-[380px] sm:max-h-[430px] overflow-y-auto mb-3 space-y-3.5 no-scrollbar flex flex-col pr-1">
           
-          {/* FIRST MESSAGE: Fin Welcome Greeting with Mascot and Capability Cards */}
+          {/* FIRST MESSAGE: Finn Welcome Greeting with Mascot and 4 Well-Spaced Capability Cards */}
           <div className="flex items-start space-x-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
             <img 
               src="/mascot.png" 
-              alt="Fin" 
+              alt="Finn" 
               className="w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-md shrink-0 object-contain bg-blue-50 border border-blue-200 mt-1"
             />
 
             <div className={`flex-1 p-3.5 sm:p-4 rounded-3xl rounded-tl-sm border text-xs leading-relaxed shadow-sm ${
               theme === 'dark' 
-                ? 'bg-slate-800/90 border-slate-700/80 text-slate-200' 
-                : 'bg-white border-slate-100 text-slate-800 shadow-slate-100'
+                ? 'bg-slate-800/90 border-slate-700/80 text-slate-100' 
+                : 'bg-[#f0f7ff] border-blue-200/70 text-slate-900 shadow-slate-100'
             }`}>
-              <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center">
-                Hi! I'm <span className="text-blue-600 dark:text-blue-400 mx-1 underline decoration-blue-400 decoration-wavy">Fin</span>, your FinGuard AI Agent!
+              <h3 className="text-sm font-black tracking-tight flex items-center flex-wrap">
+                <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>Hi! I'm</span>
+                <span className="text-blue-600 dark:text-blue-400 mx-1 underline decoration-blue-400 decoration-wavy">Finn</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>, your FinGuard AI Agent!</span>
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1 leading-snug">
+              <p className={`text-[11px] font-medium mt-1 leading-snug ${
+                theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+              }`}>
                 I help you keep your aquaculture operations healthy, productive, and risk-free. Here's what I can do for you:
               </p>
 
-              {/* 4 Feature Capability Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2.5">
+              {/* 4 Feature Capability Cards (Responsive 2x2 Grid with generous space and high contrast) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 my-3">
                 {/* 1. Diagnose */}
-                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
-                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-blue-50/50 border-blue-100'
+                <div className={`p-2.5 rounded-2xl border flex items-center space-x-2.5 ${
+                  theme === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-white border-blue-100 shadow-xs'
                 }`}>
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center shrink-0">
-                    <Activity size={14} />
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <Activity size={16} />
                   </div>
-                  <div className="text-[9px] sm:text-[10px] leading-tight">
-                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Diagnose fish health</strong>
-                    <span className="text-slate-400">from observations</span>
+                  <div className="min-w-0">
+                    <strong className={`block text-[11px] font-black leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      Diagnose fish health
+                    </strong>
+                    <span className={`text-[10px] leading-tight block ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                      from observations
+                    </span>
                   </div>
                 </div>
 
                 {/* 2. Simulate */}
-                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
-                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-purple-50/50 border-purple-100'
+                <div className={`p-2.5 rounded-2xl border flex items-center space-x-2.5 ${
+                  theme === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-white border-purple-100 shadow-xs'
                 }`}>
-                  <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
-                    <FlaskConical size={14} />
+                  <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                    <FlaskConical size={16} />
                   </div>
-                  <div className="text-[9px] sm:text-[10px] leading-tight">
-                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Simulate and</strong>
-                    <span className="text-slate-400">forecast pond risks</span>
+                  <div className="min-w-0">
+                    <strong className={`block text-[11px] font-black leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      Simulate & forecast
+                    </strong>
+                    <span className={`text-[10px] leading-tight block ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                      pond risks
+                    </span>
                   </div>
                 </div>
 
                 {/* 3. Research */}
-                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
-                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-emerald-50/50 border-emerald-100'
+                <div className={`p-2.5 rounded-2xl border flex items-center space-x-2.5 ${
+                  theme === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-white border-emerald-100 shadow-xs'
                 }`}>
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                    <BookOpen size={14} />
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <BookOpen size={16} />
                   </div>
-                  <div className="text-[9px] sm:text-[10px] leading-tight">
-                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Find trusted</strong>
-                    <span className="text-slate-400">research & guidelines</span>
+                  <div className="min-w-0">
+                    <strong className={`block text-[11px] font-black leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      Find trusted
+                    </strong>
+                    <span className={`text-[10px] leading-tight block ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                      research & guidelines
+                    </span>
                   </div>
                 </div>
 
                 {/* 4. Monitor */}
-                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
-                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-amber-50/50 border-amber-100'
+                <div className={`p-2.5 rounded-2xl border flex items-center space-x-2.5 ${
+                  theme === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-white border-amber-100 shadow-xs'
                 }`}>
-                  <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
-                    <Bell size={14} />
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                    <Bell size={16} />
                   </div>
-                  <div className="text-[9px] sm:text-[10px] leading-tight">
-                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Monitor alerts and</strong>
-                    <span className="text-slate-400">suggest actions</span>
+                  <div className="min-w-0">
+                    <strong className={`block text-[11px] font-black leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                      Monitor alerts
+                    </strong>
+                    <span className={`text-[10px] leading-tight block ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                      and suggest actions
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Suggestion prompt & pills */}
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mt-1.5">
+              <p className={`text-[11px] font-medium mt-2 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                 You can ask me anything, like:
               </p>
 
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
+              <div className="flex flex-wrap gap-1.5 mt-2">
                 {[
                   "Check the health of Pond 1",
                   "Run a 7-day risk simulation",
@@ -400,10 +446,10 @@ const AIAssistant: React.FC = () => {
                     key={promptText}
                     type="button"
                     onClick={() => handleSendMessage(promptText)}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all active:scale-95 ${
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all active:scale-95 ${
                       theme === 'dark'
-                        ? 'bg-slate-900/80 border-slate-700 text-blue-300 hover:border-blue-400'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/40'
+                        ? 'bg-slate-900/90 border-slate-700 text-blue-300 hover:border-blue-400 hover:bg-slate-900'
+                        : 'bg-white border-slate-200 text-slate-800 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/50 shadow-xs'
                     }`}
                   >
                     "{promptText}"
@@ -411,11 +457,11 @@ const AIAssistant: React.FC = () => {
                 ))}
               </div>
 
-              <p className="text-[11px] text-slate-700 dark:text-slate-300 font-medium mt-2.5">
+              <p className={`text-[11px] font-medium mt-3 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
                 How would you like to get started today?
               </p>
 
-              <div className="text-[9px] text-slate-400 text-right mt-1 font-semibold">
+              <div className={`text-[9px] text-right mt-1 font-semibold ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                 Just now
               </div>
             </div>
@@ -427,7 +473,7 @@ const AIAssistant: React.FC = () => {
               {msg.role === 'ai' ? (
                 <img 
                   src="/mascot.png" 
-                  alt="Fin" 
+                  alt="Finn" 
                   className="w-7 h-7 rounded-full shadow-xs shrink-0 object-contain bg-blue-50 border border-blue-200 mt-0.5"
                 />
               ) : null}
@@ -436,7 +482,7 @@ const AIAssistant: React.FC = () => {
                 <div className={`p-3 rounded-2xl text-xs leading-relaxed ${
                   msg.role === 'user' 
                     ? 'bg-blue-600 text-white rounded-tr-none shadow-sm font-medium' 
-                    : (theme === 'dark' ? 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5' : 'bg-slate-50 text-slate-800 rounded-tl-none border border-slate-100')
+                    : (theme === 'dark' ? 'bg-slate-800 text-slate-100 rounded-tl-none border border-white/5' : 'bg-white text-slate-800 rounded-tl-none border border-slate-200 shadow-xs')
                 }`}>
                   {msg.text}
                 </div>
@@ -464,7 +510,7 @@ const AIAssistant: React.FC = () => {
               <div className={`p-3 rounded-2xl rounded-tl-none flex items-center space-x-2 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-50'}`}>
                 <Loader2 size={14} className="animate-spin text-blue-500" />
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                  {activeTab === 'farm_agent' ? 'Fin Querying Farm Memory...' : 'Routing Through Model Gateway...'}
+                  {activeTab === 'farm_agent' ? 'Finn Querying Farm Memory...' : 'Routing Through Model Gateway...'}
                 </span>
               </div>
             </div>
