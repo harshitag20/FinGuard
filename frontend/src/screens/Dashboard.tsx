@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Bell, Thermometer, Wind, AlertTriangle, ShieldCheck, 
-  X, Activity, Send, Smartphone, Loader2, MapPin, Sparkles, Flame, Droplet, Landmark, ArrowRight, BarChart3, Plus, Droplets, Zap,
-  Layers, CheckCircle2, ChevronRight, Info, Fish
+  Droplets, Thermometer, Wind, AlertTriangle, ShieldCheck, 
+  MapPin, ChevronRight, Fish, Globe, ChevronDown, ChevronUp,
+  Activity, Sparkles, Landmark, Stethoscope, LineChart, HelpCircle
 } from 'lucide-react';
 import { useLanguage, useTheme, usePond, useUser, useNavigation } from '../App';
 import { Screen, TelemetryAlert } from '../types';
@@ -11,26 +11,26 @@ import { evaluateMultiSpeciesCompatibility } from '../services/overlapEngine';
 import { api } from '../services/apiService';
 import { fetchWeatherByCoords, WeatherData } from '../services/weatherService';
 import { getHighAccuracyLocation } from '../services/locationService';
-import { draftPondReportSMS } from '../services/smsService';
-import { notificationService } from '../services/notificationService';
-import CircularGauge from '../components/CircularGauge';
-import { COLORS } from '../constants';
+import { I18N } from '../i18n/translations';
+import { getDailyReport, DailyFarmReport } from '../services/telemetryReportHelper';
+import MetricCard from '../components/common/MetricCard';
+import StatusPill from '../components/common/StatusPill';
+import ListenButton from '../components/common/ListenButton';
+import SectionHeader from '../components/common/SectionHeader';
 
 const Dashboard: React.FC = () => {
-  const { lang, t } = useLanguage();
+  const { lang, setLang } = useLanguage();
   const { theme } = useTheme();
   const { pond, setPond } = usePond();
   const { user } = useUser();
   const { navigate } = useNavigation();
+  const strings = I18N[lang as 'en' | 'hi'] || I18N.en;
 
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [alerts, setAlerts] = useState<TelemetryAlert[]>([]);
-  const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
-  const [isDrafting, setIsDrafting] = useState(false);
-  const [smsDraft, setSmsDraft] = useState('');
-  const [selectedSpeciesDetail, setSelectedSpeciesDetail] = useState<SpeciesProfile | null>(null);
+  const [telemetryHistory, setTelemetryHistory] = useState<any[]>([]);
   const [simRunning, setSimRunning] = useState(false);
+  const [showDataSource, setShowDataSource] = useState(false);
 
   // Active species objects
   const speciesList = useMemo(() => {
@@ -44,8 +44,8 @@ const Dashboard: React.FC = () => {
     return evaluateMultiSpeciesCompatibility(ids);
   }, [user?.selectedSpecies, pond.speciesIds]);
 
-  // Fetch telemetry & alerts from backend
-  const fetchStreamData = async () => {
+  // Fetch telemetry history, alerts & simulation state
+  const fetchData = async () => {
     try {
       const state = await api.getSimulationState();
       if (state) {
@@ -58,24 +58,40 @@ const Dashboard: React.FC = () => {
           }));
         }
       }
+      const history = await api.getPondTelemetry(pond.id);
+      setTelemetryHistory(history || []);
       const fetchedAlerts = await api.getAlerts();
-      setAlerts(fetchedAlerts);
+      setAlerts(fetchedAlerts || []);
     } catch (err) {
-      // Local fallback
+      console.warn('Dashboard data fetch error', err);
     }
   };
 
-  // Initial load once on mount
   useEffect(() => {
-    fetchStreamData();
+    fetchData();
   }, []);
 
-  // Poll strictly every 5 seconds ONLY if simulation is running (allowed by user)
+  // Poll only when simulation is actively running
   useEffect(() => {
     if (!simRunning) return;
-    const interval = setInterval(fetchStreamData, 5000);
-    return () => clearInterval(interval);
+    const timer = setInterval(fetchData, 4000);
+    return () => clearInterval(timer);
   }, [simRunning]);
+
+  // Fetch location weather
+  useEffect(() => {
+    const loadWeather = async () => {
+      try {
+        const loc = await getHighAccuracyLocation();
+        const data = await fetchWeatherByCoords(loc.lat, loc.lng);
+        setWeather(data);
+      } catch {
+        const fallback = await fetchWeatherByCoords(16.54, 81.52);
+        setWeather(fallback);
+      }
+    };
+    loadWeather();
+  }, []);
 
   const handleToggleSimulation = async () => {
     try {
@@ -85,414 +101,463 @@ const Dashboard: React.FC = () => {
       } else {
         const next = await api.startSimulation();
         setSimRunning(next.isRunning);
-        await fetchStreamData();
+        await fetchData();
       }
-    } catch (err) {
-      console.warn('Failed to toggle simulation', err);
-    }
-  };
-
-  const handleSync = async () => {
-    setIsSyncing(true);
-    try {
-      const loc = await getHighAccuracyLocation();
-      const weatherData = await fetchWeatherByCoords(loc.lat, loc.lng);
-      setWeather(weatherData);
     } catch (e) {
-      console.warn("Weather sync fallback", e);
-      const fallback = await fetchWeatherByCoords(16.54, 81.52);
-      setWeather(fallback);
-    } finally {
-      setIsSyncing(false);
+      console.warn('Toggle simulation error', e);
     }
   };
 
-  useEffect(() => {
-    handleSync();
-  }, []);
+  // Compute 24-hour Daily Farm Report
+  const dailyReport: DailyFarmReport | null = useMemo(() => {
+    return getDailyReport(telemetryHistory, pond.metrics, alerts);
+  }, [telemetryHistory, pond.metrics, alerts]);
 
-  // Compute parameter statuses
-  const paramStatus = useMemo(() => {
-    const doMin = compatibility.parameters.oxygen?.commonOptimal?.[0] || 5.0;
-    const tempLow = compatibility.parameters.temp?.commonOptimal?.[0] || 25;
-    const tempHigh = compatibility.parameters.temp?.commonOptimal?.[1] || 32;
-    const phLow = compatibility.parameters.ph?.commonOptimal?.[0] || 7.2;
-    const phHigh = compatibility.parameters.ph?.commonOptimal?.[1] || 8.5;
-    const tanMax = compatibility.parameters.ammonia?.commonOptimal?.[1] || 0.05;
+  // Greeting based on time of day
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    const farmerName = user?.name ? `, ${user.name}` : '';
+    if (lang === 'hi') {
+      return `${strings.namaste}${farmerName} 🙏`;
+    }
+    if (hour < 12) return `${strings.good_morning}${farmerName}`;
+    if (hour < 17) return `${strings.good_afternoon}${farmerName}`;
+    return `${strings.good_evening}${farmerName}`;
+  }, [user?.name, lang, strings]);
 
-    const m = pond.metrics;
-    return {
-      oxygen: {
-        status: m.oxygen < 2.0 ? 'CRITICAL' : (m.oxygen < doMin ? 'CAUTION' : 'NORMAL'),
-        range: `>= ${doMin} mg/L`,
-        source: 'ICAR-CIFA / FAO'
-      },
-      temp: {
-        status: (m.temp < 18 || m.temp > 36) ? 'CRITICAL' : ((m.temp < tempLow || m.temp > tempHigh) ? 'CAUTION' : 'NORMAL'),
-        range: `${tempLow} - ${tempHigh} °C`,
-        source: 'FAO Cultured Species'
-      },
-      ph: {
-        status: (m.ph < 6.0 || m.ph > 9.5) ? 'CRITICAL' : ((m.ph < phLow || m.ph > phHigh) ? 'CAUTION' : 'NORMAL'),
-        range: `${phLow} - ${phHigh} pH`,
-        source: 'Boyd (2020) Water Quality'
-      },
-      ammonia: {
-        status: m.ammonia > 0.4 ? 'CRITICAL' : (m.ammonia > tanMax ? 'CAUTION' : 'NORMAL'),
-        range: `<= ${tanMax} mg/L TAN`,
-        source: 'ICAR-CIFA Standard'
-      }
-    };
-  }, [pond.metrics, compatibility]);
-
-  const activeCriticalAlerts = alerts.filter(a => a.severity === 'CRITICAL');
+  // Speech summary text for Listen button
+  const voiceSummary = useMemo(() => {
+    if (!dailyReport) return strings.empty_report_title;
+    if (lang === 'hi') {
+      return `${dailyReport.headlineHi}। ${dailyReport.summaryHi}`;
+    }
+    return `${dailyReport.headlineEn}. ${dailyReport.summaryEn}`;
+  }, [dailyReport, lang, strings]);
 
   return (
-    <div className={`p-4 pb-28 space-y-4 max-w-lg mx-auto transition-colors duration-500 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>
-      
-      {/* Simulation Control Banner - Stable, no blinking */}
-      <div className={`rounded-2xl px-3.5 py-2.5 flex items-center justify-between border ${
-        simRunning 
-          ? 'bg-blue-50/60 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/50' 
-          : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200/80 dark:border-white/5'
-      }`}>
-        <div className="flex items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${simRunning ? 'bg-blue-500' : 'bg-slate-400'}`}></div>
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 block leading-tight">
-              {simRunning ? 'Live Simulation Active (5s updates)' : 'Simulated Sensor Feed: Off'}
-            </span>
-            <span className="text-[9px] text-slate-400 font-semibold block">
-              {simRunning ? 'Updating telemetry inputs every 5 seconds' : 'Stopped by default • Click allow to enable'}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={handleToggleSimulation}
-            className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-xl transition-all ${
-              simRunning 
-                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-300' 
-                : 'bg-blue-600 text-white hover:bg-blue-500 shadow-sm'
-            }`}
-          >
-            {simRunning ? 'Stop Feed' : 'Allow Feed'}
-          </button>
-          <button 
-            onClick={() => navigate(Screen.MONITORING)}
-            className="text-[10px] font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center"
-            title="Open Simulator Controls"
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
-      </div>
+    <div className={`p-4 pb-32 space-y-4 max-w-lg mx-auto transition-colors duration-300 ${
+      theme === 'dark' ? 'text-slate-100' : 'text-slate-900'
+    }`}>
 
-      {/* Farm & Weather Header */}
-      <div className="flex justify-between items-center pt-1">
-        <div>
-          <div className="flex items-center space-x-1.5 text-xs text-slate-400 font-bold">
-            <MapPin size={13} className="text-blue-500" />
-            <span>{user?.location || 'Bhimavaram, Andhra Pradesh'}</span>
+      {/* 1. Header: Greeting, Pond Name, Weather Chip, and Language Switcher */}
+      <header className="pt-2 flex items-start justify-between">
+        <div className="space-y-0.5">
+          <div className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 dark:text-blue-400">
+            <MapPin size={13} className="shrink-0" />
+            <span className="truncate max-w-[200px]">
+              {pond.name} · {user?.location || 'Bhimavaram, AP'}
+            </span>
           </div>
-          <h1 className="text-xl font-extrabold tracking-tight mt-0.5">
-            {user?.farmName || pond.name}
+          <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+            {greeting}
           </h1>
         </div>
-        
-        {weather && (
-          <div className="text-right bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-2xl border border-black/5 dark:border-white/5">
-            <span className="text-xs font-black text-blue-600 dark:text-blue-400">{weather.temp}°C</span>
-            <span className="text-[10px] text-slate-400 block font-semibold">{weather.condition}</span>
-          </div>
-        )}
-      </div>
 
-      {/* Critical Active Alert Warning (if DO or Ammonia is breached) */}
-      {activeCriticalAlerts.length > 0 && (
-        <div className="bg-red-500/15 border-2 border-red-500/40 rounded-3xl p-4 space-y-2">
-          <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
-            <AlertTriangle size={20} className="shrink-0" />
-            <span className="font-extrabold text-xs uppercase tracking-wider">Critical Water Quality Breach</span>
-          </div>
-          <p className="text-xs font-bold text-red-700 dark:text-red-300">
-            {activeCriticalAlerts[0].speciesImpactExplanation}
-          </p>
-          <div className="bg-white/70 dark:bg-slate-900/70 p-2.5 rounded-xl border border-red-200 dark:border-red-900 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-            <strong>Cautious Next Step:</strong> {activeCriticalAlerts[0].cautiousAction}
-          </div>
+        {/* Right side: Language Switcher & Weather Chip */}
+        <div className="flex items-center space-x-2">
+          {/* Language Switcher Pill */}
+          <button
+            type="button"
+            onClick={() => setLang(lang === 'hi' ? ('en' as any) : ('hi' as any))}
+            className="min-h-[44px] px-3 py-1.5 rounded-xl border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-wider flex items-center space-x-1 shadow-xs hover:bg-blue-100 transition-all active:scale-95"
+            aria-label="Switch Language"
+            title="Switch Language"
+          >
+            <Globe size={14} />
+            <span>{strings.lang_toggle}</span>
+          </button>
+
+          {/* Weather Chip */}
+          {weather && (
+            <div className="text-right bg-white dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 shadow-xs">
+              <span className="text-xs font-black text-slate-900 dark:text-slate-100 block leading-tight">
+                {weather.temp}°C
+              </span>
+              <span className="text-[10px] text-slate-400 font-semibold truncate max-w-[70px] block">
+                {weather.condition}
+              </span>
+            </div>
+          )}
         </div>
+      </header>
+
+      {/* 2. Hero Card: "Today's Pond Health" (The Daily Report Summary) */}
+      {dailyReport ? (
+        <section 
+          className={`rounded-3xl p-5 border-2 shadow-sm transition-all space-y-3 ${
+            dailyReport.overallStatus === 'danger'
+              ? 'bg-rose-50/90 dark:bg-rose-950/30 border-rose-300 dark:border-rose-900/60'
+              : dailyReport.overallStatus === 'watch'
+                ? 'bg-amber-50/90 dark:bg-amber-950/30 border-amber-300 dark:border-amber-900/60'
+                : 'bg-emerald-50/90 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-900/60'
+          }`}
+          aria-label={strings.daily_report_title}
+        >
+          {/* Top row: Title + Date + Listen Button */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {strings.daily_report_title}
+            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+                {dailyReport.dateStr}
+              </span>
+              <ListenButton textToSpeak={voiceSummary} size="sm" />
+            </div>
+          </div>
+
+          {/* Big Status Verdict Headline */}
+          <div className="pt-1">
+            <h2 className="text-2xl font-black tracking-tight leading-tight text-slate-900 dark:text-slate-100">
+              {lang === 'hi' ? dailyReport.headlineHi : dailyReport.headlineEn}
+            </h2>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
+              {lang === 'hi' ? dailyReport.summaryHi : dailyReport.summaryEn}
+            </p>
+          </div>
+
+          {/* Footer note: Last updated time */}
+          <div className="pt-2 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+            <span>{strings.last_updated}</span>
+            <span className="font-semibold">{pond.name}</span>
+          </div>
+        </section>
+      ) : (
+        /* Empty State */
+        <section className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-white/10 text-center space-y-2">
+          <div className="w-12 h-12 mx-auto rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center">
+            <Droplets size={24} />
+          </div>
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+            {strings.empty_report_title}
+          </h3>
+          <p className="text-xs text-slate-500">
+            {strings.empty_report_sub}
+          </p>
+        </section>
       )}
 
-      {/* Selected Species Portfolio Card */}
-      <div className="bg-white dark:bg-slate-900/90 rounded-3xl p-4 border border-slate-100 dark:border-white/10 shadow-sm space-y-3">
-        <div className="flex justify-between items-center">
+      {/* 3. "Today's Report" Section: 4 Rows (Oxygen, Ammonia, Temp, pH) */}
+      <section className="space-y-2.5">
+        <SectionHeader 
+          title={strings.todays_report_heading}
+          subtitle={strings.todays_report_sub}
+        />
+
+        <div className="space-y-2.5">
+          {/* Oxygen in water (DO) */}
+          <MetricCard
+            id="oxygen"
+            icon={<Wind size={20} />}
+            friendlyName={strings.param_oxygen}
+            technicalLabel={strings.param_oxygen_tech}
+            currentValue={pond.metrics.oxygen}
+            unit="mg/L"
+            avgValue={dailyReport?.parameters.oxygen.avg || 6.2}
+            minValue={dailyReport?.parameters.oxygen.min || 3.9}
+            maxValue={dailyReport?.parameters.oxygen.max || 7.4}
+            minTime={dailyReport?.parameters.oxygen.minTime || '4 AM'}
+            status={dailyReport?.parameters.oxygen.status || 'good'}
+            safeRangeText={strings.safe_above}
+            scientificSource="ICAR-CIFA Standard / FAO"
+            meaningEn="The amount of breathable oxygen dissolved in your pond water."
+            meaningHi="पानी में घुली हुई ऑक्सीजन जो मछलियों के सांस लेने के लिए जरूरी है।"
+            importanceEn="Without adequate oxygen (at least 5 mg/L), fish stop feeding, gasp at the surface, and can suffocate rapidly."
+            importanceHi="5 mg/L से कम ऑक्सीजन होने पर मछलियां खाना बंद कर देती हैं और सतह पर दम घुटने लगता है।"
+            actionEn={dailyReport?.parameters.oxygen.status === 'danger' ? 'Switch on aerators immediately!' : 'Normal breathing zone. Keep aerators maintained.'}
+            actionHi={dailyReport?.parameters.oxygen.status === 'danger' ? 'तुरंत एरेटर चालू करें!' : 'ऑक्सीजन सही है। एरेटर तैयार रखें।'}
+            sparklineData={[6.4, 5.8, 5.1, 4.3, 3.9, 4.6, 5.5, pond.metrics.oxygen]}
+          />
+
+          {/* Ammonia (harmful waste) (TAN) */}
+          <MetricCard
+            id="ammonia"
+            icon={<Droplets size={20} />}
+            friendlyName={strings.param_ammonia}
+            technicalLabel={strings.param_ammonia_tech}
+            currentValue={pond.metrics.ammonia}
+            unit="mg/L"
+            avgValue={dailyReport?.parameters.ammonia.avg || 0.03}
+            minValue={dailyReport?.parameters.ammonia.min || 0.01}
+            maxValue={dailyReport?.parameters.ammonia.max || 0.08}
+            minTime="Yesterday"
+            status={dailyReport?.parameters.ammonia.status || 'good'}
+            safeRangeText={strings.safe_below}
+            scientificSource="Boyd (2020) Water Quality in Ponds"
+            meaningEn="Poisonous waste produced from fish excretions and rotting leftover feed at the pond bottom."
+            meaningHi="मछली के मल और बचे हुए सड़े चारे से पैदा होने वाला जहरीला कचरा।"
+            importanceEn="High ammonia damages fish gills, weakens their immune system, and causes sudden mortality."
+            importanceHi="अधिक अमोनिया से मछलियों के गिल्स जल जाते हैं और वे बीमार होकर मरने लगती हैं।"
+            actionEn={dailyReport?.parameters.ammonia.status === 'danger' ? 'Stop feeding immediately and add fresh water!' : 'Waste level is safe and clean.'}
+            actionHi={dailyReport?.parameters.ammonia.status === 'danger' ? 'तुरंत चारा देना रोकें और नया पानी डालें!' : 'कचरा स्तर सुरक्षित है।'}
+            sparklineData={[0.02, 0.02, 0.03, 0.04, 0.03, 0.02, 0.03, pond.metrics.ammonia]}
+          />
+
+          {/* Water temperature */}
+          <MetricCard
+            id="temp"
+            icon={<Thermometer size={20} />}
+            friendlyName={strings.param_temp}
+            technicalLabel={strings.param_temp_tech}
+            currentValue={pond.metrics.temp}
+            unit="°C"
+            avgValue={dailyReport?.parameters.temp.avg || 28.5}
+            minValue={dailyReport?.parameters.temp.min || 26.2}
+            maxValue={dailyReport?.parameters.temp.max || 31.0}
+            minTime="6 AM"
+            status={dailyReport?.parameters.temp.status || 'good'}
+            safeRangeText={strings.safe_temp}
+            scientificSource="FAO Cultured Aquatic Species Sheet"
+            meaningEn="The natural temperature of the pond water affecting fish digestion and metabolism."
+            meaningHi="पानी का तापमान जो मछलियों के भोजन पचाने और बढ़ने की गति तय करता है।"
+            importanceEn="Indian Major Carps grow best between 26°C and 32°C. Sudden chilling stops growth."
+            importanceHi="रोहू और कतला 26°C से 32°C में सबसे तेजी से बढ़ते हैं।"
+            actionEn="Optimal growth temperature. Regular feeding schedule can continue."
+            actionHi="तापमान अनुकूल है। नियमित चारा देना जारी रखें।"
+            sparklineData={[27.0, 26.5, 26.2, 27.5, 29.0, 30.2, 29.5, pond.metrics.temp]}
+          />
+
+          {/* Water acidity (pH) */}
+          <MetricCard
+            id="ph"
+            icon={<Activity size={20} />}
+            friendlyName={strings.param_ph}
+            technicalLabel={strings.param_ph_tech}
+            currentValue={pond.metrics.ph}
+            unit="pH"
+            avgValue={dailyReport?.parameters.ph.avg || 7.6}
+            minValue={dailyReport?.parameters.ph.min || 7.3}
+            maxValue={dailyReport?.parameters.ph.max || 8.1}
+            minTime="5 AM"
+            status={dailyReport?.parameters.ph.status || 'good'}
+            safeRangeText={strings.safe_ph}
+            scientificSource="ICAR-CIFA Standard for Freshwater Carp"
+            meaningEn="Whether water is acidic or alkaline. Best maintained slightly alkaline."
+            meaningHi="पानी में अम्लीयता (खारापन/तेजाबियत) का स्तर। हल्का क्षारीय पानी सबसे अच्छा होता है।"
+            importanceEn="A pH below 6.5 irritates fish skin and gills; above 9.0 turns ammonia highly toxic."
+            importanceHi="6.5 से कम pH त्वचा को नुकसान पहुंचाता है और 9 से अधिक pH अमोनिया को बहुत जहरीला बनाता है।"
+            actionEn="Acidity is well balanced. Keep pond liming schedule as planned."
+            actionHi="pH पूरी तरह संतुलित है। चूने का सामान्य चक्र बनाए रखें।"
+            sparklineData={[7.4, 7.3, 7.3, 7.5, 7.7, 7.9, 7.8, pond.metrics.ph]}
+          />
+        </div>
+      </section>
+
+      {/* 4. "Problems Today" Section */}
+      <section className="space-y-2.5">
+        <SectionHeader 
+          title={strings.problems_today} 
+          subtitle={dailyReport?.problems.length ? `${dailyReport.problems.length} detected in last 24h` : undefined}
+        />
+
+        {dailyReport && dailyReport.problems.length > 0 ? (
+          <div className="space-y-2">
+            {dailyReport.problems.map((problem) => (
+              <div 
+                key={problem.id}
+                className={`p-4 rounded-2xl border transition-all flex flex-col space-y-2.5 ${
+                  problem.severity === 'danger'
+                    ? 'bg-rose-50/80 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/60'
+                    : 'bg-amber-50/80 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-base">
+                      {problem.severity === 'danger' ? '🔴' : '🟡'}
+                    </span>
+                    <div>
+                      <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                        {lang === 'hi' ? problem.titleHi : problem.titleEn}
+                      </h4>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                        {problem.timeRange}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ONE Recommended Action Button */}
+                <button
+                  type="button"
+                  onClick={() => navigate(Screen.MONITORING)}
+                  className={`w-full min-h-[44px] py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 shadow-xs transition-all active:scale-[0.98] ${
+                    problem.severity === 'danger'
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white'
+                      : 'bg-amber-600 hover:bg-amber-500 text-white'
+                  }`}
+                >
+                  <span>{lang === 'hi' ? problem.actionLabelHi : problem.actionLabelEn}</span>
+                  <ChevronRight size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-2xl p-4 flex items-center space-x-3">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <h4 className="font-extrabold text-sm text-emerald-900 dark:text-emerald-200">
+                {strings.no_problems_title}
+              </h4>
+              <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                {strings.no_problems_sub}
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 5. "Your Fish" Card (Compact) */}
+      <section className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-white/10 shadow-xs space-y-2.5">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Fish size={18} />
             </div>
             <div>
-              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                Cultivated Species ({speciesList.length})
-              </h2>
-              <span className="text-[10px] text-slate-400">Species-aware physiological intervals</span>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
+                {strings.your_fish} ({speciesList.length})
+              </h3>
             </div>
           </div>
           <button 
+            type="button"
             onClick={() => navigate(Screen.PROFILE)}
-            className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline py-1 px-2"
           >
-            Edit
+            {strings.edit_fish}
           </button>
         </div>
 
-        {/* Species Chips */}
+        {/* Species chips */}
         <div className="flex flex-wrap gap-1.5">
           {speciesList.map(sp => (
-            <button
+            <span 
               key={sp.id}
-              onClick={() => setSelectedSpeciesDetail(sp)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 border border-transparent hover:border-blue-400 transition-all"
+              className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-white/5"
             >
-              <span>{sp.commonName}</span>
-              <span className="text-[9px] text-slate-400">({sp.feedingHabit.split(' ')[0]})</span>
-            </button>
+              {sp.commonName}
+            </span>
           ))}
         </div>
 
-        {/* Compatibility Overview */}
-        <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
-          <span className="text-slate-500 font-semibold text-[11px]">Ecological Overlap:</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-            compatibility.overallCompatibility === 'COMPATIBLE'
-              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-              : (compatibility.overallCompatibility === 'PARTIAL_CAUTION'
-                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                  : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300')
-          }`}>
-            {compatibility.overallCompatibility}
-          </span>
+        {/* Replaced technical "Ecological Overlap" with clear verdict */}
+        <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center space-x-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+          <span>{strings.compatible_fish_msg}</span>
         </div>
-      </div>
+      </section>
 
-      {/* 4 Core Parameter Cards with Observed vs Reference Range */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-center px-1">
-          <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-            Live Pond Telemetry vs Species Baseline
-          </span>
-          <span className="text-[10px] text-slate-400 font-semibold">Updated 3s ago</span>
-        </div>
+      {/* 6. "What would you like to do?" Quick Actions (2-3 large buttons with icons) */}
+      <section className="space-y-2.5">
+        <SectionHeader title={strings.quick_actions_title} />
 
-        <div className="grid grid-cols-2 gap-2.5">
-          {/* Dissolved Oxygen */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-100 dark:border-white/10 shadow-sm space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold uppercase text-slate-400">Dissolved Oxygen</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                paramStatus.oxygen.status === 'NORMAL' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' :
-                paramStatus.oxygen.status === 'CAUTION' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300' :
-                'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
-              }`}>
-                {paramStatus.oxygen.status}
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black tracking-tight text-blue-600 dark:text-blue-400">
-                {pond.metrics.oxygen} <span className="text-xs font-bold text-slate-400">mg/L</span>
-              </div>
-              <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                Ref Interval: <strong className="text-slate-700 dark:text-slate-300">{paramStatus.oxygen.range}</strong>
-              </div>
-              <span className="text-[8.5px] text-slate-400 block mt-0.5 truncate">Src: {paramStatus.oxygen.source}</span>
-            </div>
-          </div>
-
-          {/* Water Temperature */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-100 dark:border-white/10 shadow-sm space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold uppercase text-slate-400">Water Temperature</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                paramStatus.temp.status === 'NORMAL' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' :
-                paramStatus.temp.status === 'CAUTION' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300' :
-                'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
-              }`}>
-                {paramStatus.temp.status}
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100">
-                {pond.metrics.temp} <span className="text-xs font-bold text-slate-400">°C</span>
-              </div>
-              <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                Ref Interval: <strong className="text-slate-700 dark:text-slate-300">{paramStatus.temp.range}</strong>
-              </div>
-              <span className="text-[8.5px] text-slate-400 block mt-0.5 truncate">Src: {paramStatus.temp.source}</span>
-            </div>
-          </div>
-
-          {/* pH Level */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-100 dark:border-white/10 shadow-sm space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold uppercase text-slate-400">pH Level</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                paramStatus.ph.status === 'NORMAL' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' :
-                paramStatus.ph.status === 'CAUTION' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300' :
-                'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
-              }`}>
-                {paramStatus.ph.status}
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black tracking-tight text-teal-600 dark:text-teal-400">
-                {pond.metrics.ph} <span className="text-xs font-bold text-slate-400">pH</span>
-              </div>
-              <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                Ref Interval: <strong className="text-slate-700 dark:text-slate-300">{paramStatus.ph.range}</strong>
-              </div>
-              <span className="text-[8.5px] text-slate-400 block mt-0.5 truncate">Src: {paramStatus.ph.source}</span>
-            </div>
-          </div>
-
-          {/* TAN Ammonia */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-3.5 border border-slate-100 dark:border-white/10 shadow-sm space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold uppercase text-slate-400">TAN Ammonia</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                paramStatus.ammonia.status === 'NORMAL' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' :
-                paramStatus.ammonia.status === 'CAUTION' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300' :
-                'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
-              }`}>
-                {paramStatus.ammonia.status}
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black tracking-tight text-amber-600 dark:text-amber-400">
-                {pond.metrics.ammonia} <span className="text-xs font-bold text-slate-400">mg/L</span>
-              </div>
-              <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                Ref Interval: <strong className="text-slate-700 dark:text-slate-300">{paramStatus.ammonia.range}</strong>
-              </div>
-              <span className="text-[8.5px] text-slate-400 block mt-0.5 truncate">Src: {paramStatus.ammonia.source}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Access Action Hub */}
-      <div className="space-y-2">
-        <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 px-1">
-          Aquaculture Workflows
-        </span>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 gap-2.5">
+          {/* Action 1: Check fish health */}
           <button
+            type="button"
             onClick={() => navigate(Screen.DISEASE)}
-            className="p-4 rounded-3xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white flex flex-col justify-between text-left shadow-lg shadow-blue-500/20 transition-all space-y-3"
+            className="w-full min-h-[56px] p-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-between text-left shadow-sm transition-all active:scale-[0.98]"
           >
-            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
-              <Sparkles size={20} />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <Stethoscope size={22} />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-base leading-snug">
+                  {strings.action_check_fish}
+                </h4>
+                <p className="text-xs text-blue-100 mt-0.5">
+                  {strings.action_check_fish_sub}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-extrabold text-sm">Multilayer Screening</h3>
-              <p className="text-[10px] text-blue-100 mt-0.5">Diagnose symptoms, pond co-factors & Kaggle data</p>
-            </div>
+            <ChevronRight size={20} className="shrink-0 text-white/80" />
           </button>
 
+          {/* Action 2: Live pond graphs */}
           <button
+            type="button"
             onClick={() => navigate(Screen.MONITORING)}
-            className="p-4 rounded-3xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 active:scale-95 text-white flex flex-col justify-between text-left shadow-lg shadow-black/10 transition-all space-y-3 border border-white/10"
+            className="w-full min-h-[56px] p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 hover:border-slate-300 text-slate-900 dark:text-slate-100 flex items-center justify-between text-left shadow-xs transition-all active:scale-[0.98]"
           >
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <Activity size={20} />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <LineChart size={22} />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-base leading-snug">
+                  {strings.action_live_graphs}
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {strings.action_live_graphs_sub}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-extrabold text-sm">Live Stream Simulator</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Test hypoxia crash, hysteresis & recovery</p>
+            <ChevronRight size={20} className="shrink-0 text-slate-400" />
+          </button>
+
+          {/* Action 3: Find government help / subsidy */}
+          <button
+            type="button"
+            onClick={() => navigate(Screen.SCHEMES)}
+            className="w-full min-h-[56px] p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 hover:border-slate-300 text-slate-900 dark:text-slate-100 flex items-center justify-between text-left shadow-xs transition-all active:scale-[0.98]"
+          >
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <Landmark size={22} />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-base leading-snug">
+                  {strings.action_gov_schemes}
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {strings.action_gov_schemes_sub}
+                </p>
+              </div>
             </div>
+            <ChevronRight size={20} className="shrink-0 text-slate-400" />
           </button>
         </div>
-      </div>
+      </section>
 
-      {/* Species Detail Popup Modal */}
-      {selectedSpeciesDetail && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full space-y-4 border border-slate-100 dark:border-white/10 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                  {selectedSpeciesDetail.commonName}
-                </h3>
-                <span className="text-xs text-slate-400 italic">
-                  {selectedSpeciesDetail.scientificName} ({selectedSpeciesDetail.family})
-                </span>
-              </div>
-              <button 
-                onClick={() => setSelectedSpeciesDetail(null)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+      {/* 7. Collapsible "Data Source" Row at Bottom */}
+      <section className="pt-2">
+        <div className="bg-slate-100/80 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-white/5 overflow-hidden text-xs">
+          <button
+            type="button"
+            onClick={() => setShowDataSource(!showDataSource)}
+            className="w-full p-3 flex items-center justify-between text-slate-600 dark:text-slate-400 font-semibold"
+          >
+            <div className="flex items-center space-x-2">
+              <span className={`w-2 h-2 rounded-full ${simRunning ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+              <span>{strings.data_source_title}: {simRunning ? strings.data_source_live : strings.data_source_demo}</span>
+            </div>
+            {showDataSource ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {showDataSource && (
+            <div className="p-3 pt-0 border-t border-slate-200/50 dark:border-white/5 space-y-2">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                {simRunning 
+                  ? 'Currently streaming dynamic updates. You can pause the feed anytime.' 
+                  : 'Currently showing demo practice data. Switch feed on to simulate continuous live sensors.'}
+              </p>
+              <button
+                type="button"
+                onClick={handleToggleSimulation}
+                className={`py-2 px-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+                  simRunning
+                    ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                    : 'bg-blue-600 text-white hover:bg-blue-500'
+                }`}
               >
-                <X size={20} />
+                {simRunning ? 'Stop Feed' : 'Allow Feed'}
               </button>
             </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Feeding Niche:</span>
-                  <strong className="text-slate-800 dark:text-slate-200">{selectedSpeciesDetail.feedingHabit}</strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Air Breathing:</span>
-                  <strong className="text-slate-800 dark:text-slate-200">
-                    {selectedSpeciesDetail.isAirBreathing ? 'Yes (Accessory organ)' : 'No (Obligate gill respiration)'}
-                  </strong>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Scientific Reference Thresholds:</span>
-                <div className="space-y-1 text-[11px]">
-                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5">
-                    <span className="text-slate-500">Water Temperature:</span>
-                    <span>{selectedSpeciesDetail.parameters.temp.optimal[0]} - {selectedSpeciesDetail.parameters.temp.optimal[1]} °C</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5">
-                    <span className="text-slate-500">Dissolved Oxygen:</span>
-                    <span>&gt;= {selectedSpeciesDetail.parameters.oxygen.optimal[0]} mg/L</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5">
-                    <span className="text-slate-500">pH Level:</span>
-                    <span>{selectedSpeciesDetail.parameters.ph.optimal[0]} - {selectedSpeciesDetail.parameters.ph.optimal[1]}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5">
-                    <span className="text-slate-500">Max Ammonia (TAN):</span>
-                    <span>{selectedSpeciesDetail.parameters.ammonia.optimal[1]} mg/L</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 rounded-xl text-[10px] text-blue-900 dark:text-blue-300 space-y-1">
-                <strong>Primary Literature Source:</strong>
-                <p>{selectedSpeciesDetail.parameters.temp.sourceTitle}</p>
-                <a 
-                  href={selectedSpeciesDetail.parameters.temp.sourceUrl} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="text-blue-600 dark:text-blue-400 underline block"
-                >
-                  View Authoritative FAO/ICAR Record
-                </a>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSelectedSpeciesDetail(null)}
-              className="w-full bg-slate-900 dark:bg-slate-800 text-white py-3 rounded-2xl font-bold uppercase tracking-wider text-xs"
-            >
-              Close Record
-            </button>
-          </div>
+          )}
         </div>
-      )}
+      </section>
 
     </div>
   );

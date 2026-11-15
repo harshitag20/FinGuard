@@ -5,7 +5,11 @@ import { authorizeFarmAccess } from '../middleware/farmAuth.middleware';
 
 const router = Router();
 
-// Apply tenant authorization middleware across all farm routes
+// Top-level Farm Management (Registration & Listing)
+router.get('/', farmAgentController.getFarms);
+router.post('/', farmAgentController.registerFarm);
+
+// Apply tenant authorization middleware across all farm-scoped routes
 router.use('/:farmId', authorizeFarmAccess);
 
 // 1. Client-Facing Farm Agent Messaging & Management

@@ -39,27 +39,14 @@ export const authorizeFarmAccess = (req: Request, res: Response, next: NextFunct
     return next();
   }
 
-  // 2. Validate user-level farm authorization
+  // 2. Validate dynamic user-level farm authorization against central storage
   const user = storage.getUser();
-  const ponds = storage.getPonds();
-  
-  // Normalized farm identifiers that belong to the current authenticated tenant
-  const authorizedFarms = new Set<string>([
-    'FARM-001',
-    'FARM-PATEL-1',
-    'DEFAULT-FARM',
-    ...ponds.map(p => p.id)
-  ]);
+  const authorizedFarms = new Set<string>(
+    storage.getUserAuthorizedFarms(user?.id)
+  );
 
-  if (user?.farmName) {
-    authorizedFarms.add(user.farmName.toLowerCase().replace(/\s+/g, '-'));
-  }
-
-  // In development / demo environment without external auth provider,
-  // allow tenant farms matching authorized set or beginning with standard tenant prefixes
   const normalizedRequested = farmId.trim().toUpperCase();
-  const isAuthorized = authorizedFarms.has(normalizedRequested) ||
-                       authorizedFarms.has(farmId);
+  const isAuthorized = authorizedFarms.has(normalizedRequested);
 
   if (!isAuthorized) {
     res.status(403).json({

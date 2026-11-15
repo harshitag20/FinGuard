@@ -127,7 +127,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
-  // Demo Sign-In: Pre-fills farmer info, auto-detects location & weather, and takes user straight to Fish Details page
+  // Demo Sign-In: Pre-fills farmer info, auto-detects location & weather, and moves to Step 2 (Location & Weather)
   const handleDemoSignIn = async () => {
     setName('Rajesh Patel');
     setPhoneNumber('9876543210');
@@ -137,7 +137,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     if (!weather) {
       await handleAutoDetectLocation();
     }
-    setStep('species');
+    setStep('identity');
   };
 
   const finalizeOnboarding = () => {
@@ -338,14 +338,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       )}
                     </button>
 
-                    {/* DEMO SIGN IN BUTTON: Leads straight to Fish Details & Species Asking */}
+                    {/* DEMO SIGN IN BUTTON: Leads to Step 2 (Location & Weather) */}
                     {!codeSent && (
                       <button
                         onClick={handleDemoSignIn}
-                        className="w-full bg-slate-100 text-slate-700 py-3 rounded-2xl font-black uppercase tracking-wider text-[10px] flex items-center justify-center space-x-1.5 hover:bg-slate-200 active:scale-95 transition-all border border-slate-200/80"
+                        aria-label="DEMO SIGIN"
+                        className="w-full bg-slate-100 text-slate-700 py-3 rounded-2xl font-black uppercase tracking-wider text-xs flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all border border-slate-200/80"
                       >
-                        <Zap size={13} className="text-amber-500 fill-amber-500" />
-                        <span>Demo Sign In (Fish Details & Weather)</span>
+                        <span>DEMO SIGN IN</span>
                       </button>
                     )}
                   </div>

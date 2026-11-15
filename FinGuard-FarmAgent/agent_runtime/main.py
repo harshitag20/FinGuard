@@ -154,6 +154,13 @@ async def chat(payload: AgentChatMessage):
         farm_id=payload.farm_id,
         conversation_id=payload.conversation_id
     )
+
+    if result.get("metadata", {}).get("error_type") == "missing_production_credentials":
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=result.get("response", "Configuration Error: GEMINI_API_KEY missing in production.")
+        )
+
     return AgentChatResponse(**result)
 
 # Farm Data Endpoints for Control Plane Integration

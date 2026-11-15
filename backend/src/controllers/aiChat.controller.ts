@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { modelRoutingService } from '../services/pruneRouting.service';
-import { RequestCategory } from '../../../FinGuard-PruneIntegration/typescript/src/index';
+import { RequestCategory } from '../../../FinGuard-PruneIntegration/typescript/dist/src/index.js';
 
 export const aiChatController = {
   chat: async (req: Request, res: Response) => {

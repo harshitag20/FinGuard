@@ -1,310 +1,442 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
-  Landmark, 
-  HandCoins, 
-  GraduationCap, 
-  Building2, 
-  Search, 
-  ExternalLink, 
-  Sparkles, 
-  CheckCircle2, 
-  Info, 
-  ArrowRight, 
-  ShieldCheck, 
-  FileText,
-  Globe
+  Landmark, HandCoins, GraduationCap, Building2, Search, 
+  ExternalLink, Sparkles, CheckCircle2, Info, ArrowRight, 
+  ShieldCheck, FileText, Globe, Share2, Copy, Filter, X
 } from 'lucide-react';
-import { useTheme, useLanguage } from '../App';
+import { useTheme, useLanguage, useUser, usePond } from '../App';
+import { I18N } from '../i18n/translations';
+import SchemeCard, { SchemeItem } from '../components/common/SchemeCard';
+import SectionHeader from '../components/common/SectionHeader';
+import BottomSheet from '../components/common/BottomSheet';
 
-interface GovScheme {
-  id: string;
-  title: string;
-  ministry: string;
-  category: 'SUBSIDY' | 'LOAN' | 'TRAINING' | 'INFRASTRUCTURE';
-  icon: React.ReactNode;
-  benefit: string;
-  eligibility: string;
-  description: string;
-  portalLink: string;
-  guidelineLink: string;
-  mySchemeLink?: string;
-  portalDomain: string;
-}
-
-const GOV_SCHEMES: GovScheme[] = [
+const SCHEMES_DATA: SchemeItem[] = [
   {
     id: 'pmmsy',
-    title: 'Pradhan Mantri Matsya Sampada Yojana (PMMSY)',
-    ministry: 'Department of Fisheries, MoFAHD, Govt. of India',
-    category: 'SUBSIDY',
-    icon: <Landmark />,
-    benefit: '40% (General) to 60% (SC/ST/Women) Financial Assistance',
-    eligibility: 'Fishers, Fish Farmers, Self Help Groups, Co-operatives',
-    description: 'Flagship national scheme aimed at driving the Blue Revolution with sustainable production, modern technology infusion, and post-harvest infrastructure.',
+    simpleTitleEn: 'Fish Farming Support & Pond Subsidy (PMMSY)',
+    simpleTitleHi: 'मछली पालन सब्सिडी योजना (PMMSY)',
+    officialTitle: 'Pradhan Mantri Matsya Sampada Yojana (PMMSY)',
+    benefitEn: 'Get 40% of project cost paid by government (60% for SC/ST/Women)',
+    benefitHi: 'सरकार द्वारा 40% से 60% तक की आर्थिक मदद (सब्सिडी)',
+    eligibilityChips: ['Fish Farmers', 'Self-Help Groups', 'Co-operatives', 'Women Farmers'],
+    tag: 'SUBSIDY',
     portalLink: 'https://pmmsy.dof.gov.in/',
-    guidelineLink: 'https://dof.gov.in/pmmsy',
-    mySchemeLink: 'https://www.myscheme.gov.in/schemes/pmmsy',
-    portalDomain: 'pmmsy.dof.gov.in'
+    domain: 'pmmsy.dof.gov.in'
   },
   {
     id: 'kcc',
-    title: 'Kisan Credit Card (KCC) for Fisheries & Aquaculture',
-    ministry: 'Ministry of Fisheries, Animal Husbandry & Dairying / RBI',
-    category: 'LOAN',
-    icon: <HandCoins />,
-    benefit: 'Working Capital up to ₹2 Lakhs @ 7% (effective 4% with prompt repayment)',
-    eligibility: 'Individual Fish Farmers, Joint Liability Groups, SHGs, Fishers',
-    description: 'Provides institutional short-term credit support for feeding, seed purchase, pond maintenance, electricity, and working operational expenses.',
+    simpleTitleEn: 'Low-Interest Fish Farming Loan (KCC)',
+    simpleTitleHi: 'सस्ता किसान क्रेडिट कार्ड लोन (KCC)',
+    officialTitle: 'Kisan Credit Card for Fisheries & Aquaculture',
+    benefitEn: 'Working capital loan up to ₹2 Lakhs at effective 4% interest rate',
+    benefitHi: 'चारा और दैनिक खर्च के लिए ₹2 लाख तक का सस्ता लोन मात्र 4% ब्याज पर',
+    eligibilityChips: ['Individual Farmers', 'Joint Liability Groups', 'SHGs'],
+    tag: 'LOAN',
     portalLink: 'https://www.myscheme.gov.in/schemes/kcc-ahf',
-    guidelineLink: 'https://dahd.nic.in/kisan-credit-card-kcc',
-    portalDomain: 'myscheme.gov.in'
+    domain: 'myscheme.gov.in'
   },
   {
     id: 'fidf',
-    title: 'Fisheries and Aquaculture Infrastructure Development Fund (FIDF)',
-    ministry: 'Department of Fisheries / NABARD / NCDC',
-    category: 'INFRASTRUCTURE',
-    icon: <Building2 />,
-    benefit: 'Concessional finance with up to 3% interest subvention per annum',
-    eligibility: 'Entrepreneurs, State Govt entities, Cooperatives, Private Companies',
-    description: 'Dedicated infrastructure financing for establishing cold chains, hatcheries, modern fish feed mills, disease testing laboratories, and landing centers.',
+    simpleTitleEn: 'Equipment, Aerator & Hatchery Fund (FIDF)',
+    simpleTitleHi: 'उपकरण, एरेटर व हैचरी फंड (FIDF)',
+    officialTitle: 'Fisheries and Aquaculture Infrastructure Development Fund',
+    benefitEn: 'Concessional finance with 3% interest discount for aerators, hatcheries & feed mills',
+    benefitHi: 'एरेटर मशीन, फीड मिल और हैचरी निर्माण के लिए 3% ब्याज छूट पर बड़ा लोन',
+    eligibilityChips: ['Fish Farmers', 'Entrepreneurs', 'Cooperatives'],
+    tag: 'EQUIPMENT',
     portalLink: 'https://dof.gov.in/fidf',
-    guidelineLink: 'https://www.myscheme.gov.in/schemes/fidf',
-    portalDomain: 'dof.gov.in'
+    domain: 'dof.gov.in'
   },
   {
     id: 'css-dof',
-    title: 'Centrally Sponsored Schemes for Fisheries Sector',
-    ministry: 'Department of Fisheries, Ministry of FAHD, Govt. of India',
-    category: 'SUBSIDY',
-    icon: <Globe />,
-    benefit: 'Targeted capital assistance for pond construction & raceways',
-    eligibility: 'Small and marginal farmers, progressive fish culturists',
-    description: 'Central sector schemes supporting freshwater aquaculture expansion, brackishwater development, and inland capture fisheries enhancement.',
+    simpleTitleEn: 'New Pond Construction & Digging Grant',
+    simpleTitleHi: 'नया तालाब निर्माण व खुदाई अनुदान सहायता',
+    officialTitle: 'Centrally Sponsored Inland Fisheries Scheme',
+    benefitEn: 'Targeted capital assistance for digging new freshwater ponds and biofloc units',
+    benefitHi: 'नया मीठे पानी का तालाब खोदने और बायोफ्लॉक यूनिट लगाने के लिए सरकारी अनुदान',
+    eligibilityChips: ['Small & Marginal Farmers', 'Inland Culturists'],
+    tag: 'SUBSIDY',
     portalLink: 'https://dof.gov.in/schemes',
-    guidelineLink: 'https://dof.gov.in/central-sector-schemes',
-    portalDomain: 'dof.gov.in'
+    domain: 'dof.gov.in'
   },
   {
     id: 'training-cifa',
-    title: 'NFDB & ICAR-CIFA Aquaculture Training and Technology Transfer',
-    ministry: 'National Fisheries Development Board / ICAR-CIFA',
-    category: 'TRAINING',
-    icon: <GraduationCap />,
-    benefit: 'Subsidized certification in Biofloc, RAS, Composite Carp culture & Pathology',
-    eligibility: 'Fish farmers, rural youth, women entrepreneurs, startups',
-    description: 'Capacity-building, hands-on pond management training, and technology transfers conducted across regional national fisheries stations.',
-    portalLink: 'https://nfdb.gov.in/',
-    guidelineLink: 'https://cifa.nic.in/',
-    portalDomain: 'nfdb.gov.in'
+    simpleTitleEn: 'Free Scientist Training & Techniques (CIFA)',
+    simpleTitleHi: 'मुफ्त वैज्ञानिक प्रशिक्षण व तकनीक (CIFA)',
+    officialTitle: 'NFDB & ICAR-CIFA Technology Transfer Program',
+    benefitEn: 'Certified hands-on training in carp breeding, water testing & disease control',
+    benefitHi: 'मछली पालन, जल परीक्षण और रोग रोकथाम पर वैज्ञानिकों द्वारा मुफ्त सरकारी प्रमाण पत्र प्रशिक्षण',
+    eligibilityChips: ['Fish Farmers', 'Rural Youth', 'Women Entrepreneurs'],
+    tag: 'TRAINING',
+    portalLink: 'https://cifa.nic.in/',
+    domain: 'cifa.nic.in'
   }
 ];
 
 const Schemes: React.FC = () => {
   const { theme } = useTheme();
-  const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('ALL');
+  const { lang } = useLanguage();
+  const { user } = useUser();
+  const { pond } = usePond();
+  const strings = I18N[lang as 'en' | 'hi'] || I18N.en;
+
+  // Search & category filter state
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string>('ALL');
 
-  const categories = ['ALL', 'SUBSIDY', 'LOAN', 'TRAINING', 'INFRASTRUCTURE'];
+  // "Am I eligible?" quick helper state
+  const [showEligibilityHelper, setShowEligibilityHelper] = useState(true);
+  const [selectedRole, setSelectedRole] = useState<'farmer' | 'shg' | 'coop' | 'woman'>('farmer');
+  const [selectedCategory, setSelectedCategory] = useState<'general' | 'sc' | 'st' | 'obc'>('general');
+  const [selectedNeed, setSelectedNeed] = useState<'money' | 'loan' | 'training' | 'equipment'>('money');
+  const [hasFiltered, setHasFiltered] = useState(false);
 
-  const filteredSchemes = GOV_SCHEMES.filter(s => {
-    const matchesTab = activeTab === 'ALL' || s.category === activeTab;
-    const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          s.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          s.benefit.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
+  // Application checklist bottom sheet state
+  const [activeChecklistScheme, setActiveChecklistScheme] = useState<SchemeItem | null>(null);
+  const [copiedMessage, setCopiedMessage] = useState(false);
 
-  const getCategoryColor = (cat: string) => {
-    switch (cat) {
-      case 'SUBSIDY': return 'text-emerald-500 bg-emerald-500/10';
-      case 'LOAN': return 'text-blue-500 bg-blue-500/10';
-      case 'TRAINING': return 'text-purple-500 bg-purple-500/10';
-      case 'INFRASTRUCTURE': return 'text-orange-500 bg-orange-500/10';
-      default: return 'text-slate-500 bg-slate-500/10';
-    }
+  // Filter schemes based on category, search query, and eligibility helper answers
+  const filteredSchemes = useMemo(() => {
+    return SCHEMES_DATA.map(scheme => {
+      let isBest = false;
+      if (hasFiltered) {
+        if (selectedNeed === 'money' && scheme.tag === 'SUBSIDY') isBest = true;
+        if (selectedNeed === 'loan' && scheme.tag === 'LOAN') isBest = true;
+        if (selectedNeed === 'training' && scheme.tag === 'TRAINING') isBest = true;
+        if (selectedNeed === 'equipment' && scheme.tag === 'EQUIPMENT') isBest = true;
+      }
+      return {
+        ...scheme,
+        isBestMatch: isBest
+      };
+    }).filter(scheme => {
+      // Category filter
+      if (selectedTag !== 'ALL' && scheme.tag !== selectedTag) {
+        return false;
+      }
+
+      // Search filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesEn = scheme.simpleTitleEn.toLowerCase().includes(q) || scheme.benefitEn.toLowerCase().includes(q);
+        const matchesHi = scheme.simpleTitleHi.toLowerCase().includes(q) || scheme.benefitHi.toLowerCase().includes(q);
+        const matchesOfficial = scheme.officialTitle.toLowerCase().includes(q);
+        return matchesEn || matchesHi || matchesOfficial;
+      }
+
+      return true;
+    }).sort((a, b) => {
+      if (a.isBestMatch && !b.isBestMatch) return -1;
+      if (!a.isBestMatch && b.isBestMatch) return 1;
+      return 0;
+    });
+  }, [selectedTag, searchQuery, hasFiltered, selectedNeed]);
+
+  const handleApplyNow = (scheme: SchemeItem) => {
+    setActiveChecklistScheme(scheme);
+  };
+
+  const handleViewDocuments = (scheme: SchemeItem) => {
+    setActiveChecklistScheme(scheme);
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!activeChecklistScheme) return;
+    const title = lang === 'hi' ? activeChecklistScheme.simpleTitleHi : activeChecklistScheme.simpleTitleEn;
+    const farm = user?.farmName || pond.name;
+    const text = `🐟 *${title} - Checklist*\n\n` +
+      `Documents required to apply for ${farm}:\n` +
+      `1. Aadhaar Card (Identity proof)\n` +
+      `2. Bank Passbook copy (linked with Aadhaar)\n` +
+      `3. Land ownership record or 5-year lease\n` +
+      `4. Pond photos & Project Estimate\n\n` +
+      `Official Portal: ${activeChecklistScheme.portalLink}`;
+
+    navigator.clipboard?.writeText(text);
+    setCopiedMessage(true);
+    setTimeout(() => setCopiedMessage(false), 3000);
+
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
-    <div className={`pb-32 transition-colors duration-500 min-h-screen ${theme === 'dark' ? 'bg-[#0F172A]' : 'bg-[#F8FAFC]'}`}>
-      <div className={`p-8 pt-16 space-y-6 ${theme === 'dark' ? 'bg-slate-900 border-b border-white/5' : 'bg-white border-b border-slate-100'}`}>
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-              <ShieldCheck size={13} />
-              <span>Official Government Directory</span>
-            </div>
-            <h2 className={`text-2xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-              Government Schemes & Policies
-            </h2>
-            <p className="text-slate-400 text-sm font-medium">Verified .gov.in portals for subsidies, credit, and infrastructure</p>
-          </div>
-          <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500">
-            <Landmark size={30} />
-          </div>
-        </div>
+    <div className={`p-4 pb-32 space-y-4 max-w-lg mx-auto transition-colors duration-300 ${
+      theme === 'dark' ? 'text-slate-100' : 'text-slate-900'
+    }`}>
+      
+      {/* 1. Header: Plain Language Title & Subtitle */}
+      <header className="pt-2">
+        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+          {strings.schemes_title}
+        </h1>
+        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+          {strings.schemes_sub}
+        </p>
+      </header>
 
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text"
-            placeholder="Search schemes, e.g. 'PMMSY', 'subsidy', 'credit'..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full py-4 pl-12 pr-6 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all ${
-              theme === 'dark' ? 'bg-slate-800 border-white/5 text-white' : 'bg-slate-50 border-slate-100 text-slate-800'
-            }`}
-          />
-        </div>
-
-        <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-1">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveTab(cat)}
-              className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
-                activeTab === cat 
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' 
-                  : (theme === 'dark' ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500')
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="px-6 py-8 space-y-6">
-        {filteredSchemes.length > 0 ? (
-          filteredSchemes.map((scheme) => (
-            <div 
-              key={scheme.id}
-              className={`rounded-[2.5rem] border overflow-hidden transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 ${
-                theme === 'dark' ? 'bg-slate-900 border-white/5 shadow-2xl' : 'bg-white border-slate-100 shadow-sm'
-              }`}
-            >
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className={`p-3 rounded-2xl ${getCategoryColor(scheme.category)}`}>
-                    {React.cloneElement(scheme.icon as React.ReactElement<any>, { size: 24 })}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="flex items-center space-x-1 px-2.5 py-1 rounded-full text-[9px] font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20">
-                      <ShieldCheck size={11} />
-                      <span>{scheme.portalDomain}</span>
-                    </span>
-                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${getCategoryColor(scheme.category)}`}>
-                      {scheme.category}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className={`text-lg font-black leading-tight tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-                    {scheme.title}
-                  </h3>
-                  <p className="text-[11px] font-bold text-slate-400">
-                    {scheme.ministry}
-                  </p>
-                  <p className={`text-[12px] leading-relaxed pt-1 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
-                    {scheme.description}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-slate-800/50 border-white/5' : 'bg-emerald-50/40 border-emerald-100/60'}`}>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-emerald-600 mb-1">Key Financial Benefit</p>
-                    <p className={`text-[11px] font-bold leading-snug ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{scheme.benefit}</p>
-                  </div>
-                  <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-slate-800/50 border-white/5' : 'bg-blue-50/40 border-blue-100/60'}`}>
-                    <p className="text-[9px] font-black uppercase tracking-wider text-blue-600 mb-1">Target Beneficiaries</p>
-                    <p className={`text-[11px] font-bold leading-snug ${theme === 'dark' ? 'text-slate-200' : 'text-slate-700'}`}>{scheme.eligibility}</p>
-                  </div>
-                </div>
-
-                {/* Direct Government Links */}
-                <div className="pt-2 space-y-2">
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <a 
-                      href={scheme.portalLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-4 rounded-2xl text-[11px] font-black uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all"
-                    >
-                      <Globe size={14} />
-                      <span>Official National Portal</span>
-                      <ExternalLink size={13} />
-                    </a>
-
-                    <a 
-                      href={scheme.guidelineLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex-1 py-3.5 px-4 rounded-2xl text-[11px] font-black uppercase tracking-wider flex items-center justify-center space-x-2 border active:scale-95 transition-all ${
-                        theme === 'dark' 
-                          ? 'bg-slate-800 border-white/10 text-slate-200 hover:bg-slate-700' 
-                          : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-                      }`}
-                    >
-                      <FileText size={14} />
-                      <span>Guidelines & Subsidies</span>
-                      <ExternalLink size={13} />
-                    </a>
-                  </div>
-
-                  {scheme.mySchemeLink && (
-                    <a 
-                      href={scheme.mySchemeLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-full py-2.5 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
-                        theme === 'dark' ? 'text-emerald-400 bg-emerald-950/30 hover:bg-emerald-950/50' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
-                      }`}
-                    >
-                      <span>Check Single-Window Eligibility on MyScheme.gov.in</span>
-                      <ArrowRight size={12} />
-                    </a>
-                  )}
-                </div>
+      {/* 2. "Am I eligible?" Quick Helper (3-question mini-flow) */}
+      {showEligibilityHelper && (
+        <section className="bg-gradient-to-br from-blue-50/90 to-indigo-50/90 dark:from-slate-900 dark:to-blue-950/40 rounded-3xl p-4 border border-blue-200/80 dark:border-blue-900/50 shadow-sm space-y-3.5">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <h2 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
+                  {strings.eligibility_helper_title}
+                </h2>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  {strings.eligibility_helper_sub}
+                </p>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300">
-              <Search size={32} />
-            </div>
-            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No schemes found matching your search</p>
+            <button
+              type="button"
+              onClick={() => setShowEligibilityHelper(false)}
+              className="text-slate-400 hover:text-slate-600 p-1"
+              aria-label="Close Helper"
+            >
+              <X size={16} />
+            </button>
           </div>
-        )}
 
-        {/* Informational Banner */}
-        <div className={`p-8 rounded-[3rem] relative overflow-hidden text-white shadow-2xl ${
-          theme === 'dark' ? 'bg-gradient-to-br from-indigo-900 to-slate-900' : 'bg-gradient-to-br from-emerald-600 to-teal-700'
-        }`}>
-          <div className="relative z-10 space-y-4">
-            <div className="flex items-center space-x-2 bg-white/10 w-fit px-3 py-1 rounded-full border border-white/10">
-              <CheckCircle2 size={12} className="text-white" />
-              <span className="text-[9px] font-black uppercase tracking-widest">Official Government Portals</span>
+          {/* Question 1: What do you do? */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block">
+              {strings.q1_role}
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { id: 'farmer', label: strings.role_farmer },
+                { id: 'shg', label: strings.role_shg },
+                { id: 'coop', label: strings.role_coop },
+                { id: 'woman', label: strings.role_woman }
+              ].map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedRole(item.id as any)}
+                  className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold text-center transition-all ${
+                    selectedRole === item.id
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
-            <h3 className="text-xl font-black leading-tight">Need help applying for fisheries subsidies?</h3>
-            <p className="text-xs text-white/70 font-medium">All applications must be submitted directly through official Department of Fisheries (dof.gov.in) or National MyScheme portals. FinGuard provides verified direct links to prevent phishing and unauthorized intermediary fees.</p>
-            <div className="pt-2">
-              <a 
-                href="https://pmmsy.dof.gov.in/"
+          </div>
+
+          {/* Question 2: Social Category */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block">
+              {strings.q2_category}
+            </label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {[
+                { id: 'general', label: strings.cat_general },
+                { id: 'sc', label: strings.cat_sc },
+                { id: 'st', label: strings.cat_st },
+                { id: 'obc', label: strings.cat_obc }
+              ].map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(item.id as any)}
+                  className={`min-h-[44px] px-2 py-1.5 rounded-xl text-[11px] font-bold text-center transition-all truncate ${
+                    selectedCategory === item.id
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10'
+                  }`}
+                >
+                  {item.label.split(' ')[0]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Question 3: What do you need most? */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block">
+              {strings.q3_need}
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { id: 'money', label: strings.need_money },
+                { id: 'loan', label: strings.need_loan },
+                { id: 'training', label: strings.need_training },
+                { id: 'equipment', label: strings.need_equipment }
+              ].map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedNeed(item.id as any)}
+                  className={`min-h-[44px] px-3 py-2 rounded-xl text-xs font-bold text-center transition-all leading-tight ${
+                    selectedNeed === item.id
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons: Find Matches vs Skip */}
+          <div className="pt-2 border-t border-blue-200/60 dark:border-white/5 space-y-2">
+            <button
+              type="button"
+              onClick={() => setHasFiltered(true)}
+              className="w-full min-h-[48px] py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center space-x-2 shadow-sm transition-all active:scale-[0.98]"
+            >
+              <span>{strings.btn_find_matches}</span>
+              <ArrowRight size={16} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setHasFiltered(false);
+                setSelectedTag('ALL');
+              }}
+              className="w-full py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:underline text-center"
+            >
+              {strings.btn_skip_filter}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* 3. Search Bar in Plain Words */}
+      <div className="relative">
+        <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={strings.search_schemes_placeholder}
+          className="w-full min-h-[48px] pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-xs"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 p-1"
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+
+      {/* 4. Horizontally Scrollable Category Filter Chips */}
+      <div className="flex space-x-2 overflow-x-auto pb-1 no-scrollbar">
+        {[
+          { id: 'ALL', label: strings.tag_all },
+          { id: 'SUBSIDY', label: strings.tag_subsidy },
+          { id: 'LOAN', label: strings.tag_loan },
+          { id: 'TRAINING', label: strings.tag_training },
+          { id: 'EQUIPMENT', label: strings.tag_equipment }
+        ].map(cat => (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => setSelectedTag(cat.id)}
+            className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all select-none ${
+              selectedTag === cat.id
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:border-slate-300'
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 5. Simplified Scheme Cards List */}
+      <section className="space-y-3">
+        <SectionHeader 
+          title={lang === 'hi' ? 'उपलब्ध योजनाएं' : 'Available Support Schemes'} 
+          subtitle={`${filteredSchemes.length} matching programs`}
+        />
+
+        <div className="space-y-3">
+          {filteredSchemes.map(scheme => (
+            <SchemeCard
+              key={scheme.id}
+              scheme={scheme}
+              onApplyNow={handleApplyNow}
+              onViewDocuments={handleViewDocuments}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* 6. "Apply Now" & Documents Checklist Bottom Sheet */}
+      <BottomSheet
+        isOpen={Boolean(activeChecklistScheme)}
+        onClose={() => setActiveChecklistScheme(null)}
+        title={strings.checklist_title}
+        subtitle={activeChecklistScheme ? (lang === 'hi' ? activeChecklistScheme.simpleTitleHi : activeChecklistScheme.simpleTitleEn) : undefined}
+      >
+        {activeChecklistScheme && (
+          <div className="space-y-4 text-xs">
+            {/* Plain checklist subtitle */}
+            <p className="text-slate-600 dark:text-slate-300 font-semibold leading-relaxed">
+              {strings.checklist_sub}
+            </p>
+
+            {/* Checklist items */}
+            <div className="space-y-2 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10">
+              {[
+                strings.doc_aadhaar,
+                strings.doc_bank,
+                strings.doc_land,
+                strings.doc_photos,
+                strings.doc_caste
+              ].map((doc, idx) => (
+                <div key={idx} className="flex items-start space-x-2.5">
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 leading-snug">
+                    {doc}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Farm Profile Auto-Fill Note */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/50 text-[11px] font-semibold text-blue-900 dark:text-blue-200">
+              {strings.autofill_note}
+            </div>
+
+            {/* Action Buttons: WhatsApp Share & Go to Official Website */}
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={handleShareWhatsApp}
+                className="w-full min-h-[48px] py-3 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center space-x-2 shadow-xs transition-all active:scale-[0.98]"
+              >
+                <Share2 size={16} />
+                <span>{copiedMessage ? strings.copied_whatsapp : strings.btn_save_whatsapp}</span>
+              </button>
+
+              <a
+                href={activeChecklistScheme.portalLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex bg-white text-emerald-800 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all items-center space-x-2 font-sans font-bold"
+                className="w-full min-h-[48px] py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center space-x-2 shadow-xs transition-all active:scale-[0.98]"
               >
-                <span>Access PMMSY National Window</span>
-                <ArrowRight size={14} />
+                <span>{strings.btn_go_to_portal}</span>
+                <ExternalLink size={16} />
               </a>
             </div>
           </div>
-          <Info className="absolute -bottom-4 -right-4 text-white/10 w-32 h-32 rotate-12" />
-        </div>
-      </div>
+        )}
+      </BottomSheet>
+
     </div>
   );
 };

@@ -394,12 +394,19 @@ class ResearchRepository:
                 sources_file = fallback
             else:
                 return []
-        with open(sources_file, "r", encoding="utf-8") as f:
-            sources = json.load(f)
+        try:
+            with open(sources_file, "r", encoding="utf-8") as f:
+                sources = json.load(f)
+            if not isinstance(sources, list):
+                return []
+        except Exception:
+            return []
         
         q_tokens = query.lower().split()
         matches = []
         for s in sources:
+            if not isinstance(s, dict):
+                continue
             text = f"{s.get('title', '')} {' '.join(s.get('topics', []))} {s.get('key_findings', '')}".lower()
             if any(token in text for token in q_tokens):
                 matches.append(s)

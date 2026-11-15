@@ -41,14 +41,31 @@ class FinGuardAgent:
         
         tracker = ToolExecutionTracker()
 
-        # Determine if generate_content has been mocked (e.g. in test suites)
-        is_mocked = False
-        if self.client and hasattr(self.client, "models"):
-            fn = getattr(self.client.models, "generate_content", None)
-            if fn and (hasattr(fn, "mock_calls") or type(fn).__name__ in ("MagicMock", "Mock", "AsyncMock") or hasattr(fn, "side_effect") or hasattr(fn, "return_value")):
-                is_mocked = True
+        # In production mode, missing Gemini credentials must produce a clear configuration error.
+        # The application must never silently substitute a mock AI response in production.
+        is_prod = str(config.environment).strip().lower() in ("production", "prod")
+        if is_prod and not config.gemini_api_key:
+            logger.error("Configuration Error: GEMINI_API_KEY is not configured in production environment.")
+            return {
+                "error": "Configuration Error: GEMINI_API_KEY is missing in production environment. Live model inference is required.",
+                "response": "Configuration Error: GEMINI_API_KEY is not configured in production environment.",
+                "farm_id": self.farm_id,
+                "tools_used": [],
+                "metadata": {
+                    "error_type": "missing_production_credentials",
+                    "status": "misconfigured"
+                }
+            }
 
-        # If client not initialized or no key and not mocked, return structured fallback
+        # Mock detection is strictly prohibited in production and only evaluated in non-production (tests/dev)
+        is_mocked = False
+        if not is_prod:
+            if self.client and hasattr(self.client, "models"):
+                fn = getattr(self.client.models, "generate_content", None)
+                if fn and (hasattr(fn, "mock_calls") or type(fn).__name__ in ("MagicMock", "Mock", "AsyncMock") or hasattr(fn, "side_effect") or hasattr(fn, "return_value")):
+                    is_mocked = True
+
+        # If client not initialized or no key and not mocked, return structured fallback (non-production only)
         if not self.client or (not config.gemini_api_key and not is_mocked):
             return {
                 "response": (

@@ -18,11 +18,11 @@ export const COLORS = {
 };
 
 export const NAV_ITEMS = [
-  { id: Screen.DASHBOARD, label: 'Home', icon: <LayoutDashboard size={22} /> },
-  { id: Screen.MONITORING, label: 'Monitor', icon: <Activity size={22} /> },
-  { id: Screen.DISEASE, label: 'Screening', icon: <Camera size={22} /> },
-  { id: Screen.SCHEMES, label: 'Schemes', icon: <Landmark size={22} /> },
-  { id: Screen.PROFILE, label: 'Farm', icon: <User size={22} /> },
+  { id: Screen.DASHBOARD, label: 'Home', icon: <LayoutDashboard size={24} /> },
+  { id: Screen.MONITORING, label: 'Pond Status', icon: <Activity size={24} /> },
+  { id: Screen.DISEASE, label: 'Check Fish', icon: <Camera size={24} /> },
+  { id: Screen.SCHEMES, label: 'Schemes', icon: <Landmark size={24} /> },
+  { id: Screen.PROFILE, label: 'My Farm', icon: <User size={24} /> },
 ];
 
 export const TRANSLATIONS: Record<string, Record<string, string>> = {

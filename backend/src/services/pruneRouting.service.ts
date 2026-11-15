@@ -7,7 +7,7 @@ import {
   RoutingDecision,
   ChatMessage,
   FinGuardReceipt
-} from '../../../FinGuard-PruneIntegration/typescript/src/index';
+} from '../../../FinGuard-PruneIntegration/typescript/dist/src/index.js';
 
 export interface ModelCompletionRequest {
   category: RequestCategory;

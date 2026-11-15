@@ -108,5 +108,25 @@ export const farmAgentController = {
     const farmId = (Array.isArray(req.params.farmId) ? req.params.farmId[0] : req.params.farmId);
     const telemetry = storage.getTelemetry(farmId, 50);
     res.json({ success: true, farm_id: farmId, count: telemetry.length, telemetry });
+  },
+
+  /**
+   * Dynamic Farm Registration
+   */
+  registerFarm: (req: Request, res: Response) => {
+    const { farm_id, name, owner_id, owner_name } = req.body;
+    if (!farm_id || typeof farm_id !== 'string') {
+      return res.status(400).json({ success: false, error: "Field 'farm_id' is required." });
+    }
+    const farm = storage.registerFarm({ farm_id, name, owner_id, owner_name });
+    res.status(201).json({ success: true, farm });
+  },
+
+  /**
+   * List Registered Farms
+   */
+  getFarms: (req: Request, res: Response) => {
+    const farms = storage.getFarms();
+    res.json({ success: true, farms });
   }
 };

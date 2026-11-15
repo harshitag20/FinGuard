@@ -27,9 +27,18 @@ export interface CentralObservation {
   committed_at: string;
 }
 
+export interface FarmRecord {
+  farm_id: string;
+  name: string;
+  owner_id?: string;
+  owner_name?: string;
+  created_at: string;
+}
+
 interface DatabaseSchema {
   user: UserData | null;
   ponds: PondConfig[];
+  farms: FarmRecord[];
   telemetryHistory: Record<string, PondMetrics[]>;
   alerts: TelemetryAlert[];
   screeningHistory: DiseaseScreeningResult[];
@@ -43,6 +52,14 @@ const DB_FILE = process.env.DATABASE_FILE || path.join(DB_DIR, 'finguard_db.json
 
 const INITIAL_DB: DatabaseSchema = {
   user: null,
+  farms: [
+    {
+      farm_id: 'FARM-001',
+      name: 'Godavari Delta Aquaculture Farm',
+      owner_name: 'Rajesh Patel',
+      created_at: '2026-03-01T10:00:00Z'
+    }
+  ],
   ponds: [
     {
       id: 'POND-01',
@@ -111,7 +128,27 @@ class StorageManager {
     try {
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        // Migration / Sanitization: Ensure farms collection exists
+        if (!parsed.farms || !Array.isArray(parsed.farms)) {
+          parsed.farms = [
+            {
+              farm_id: 'FARM-001',
+              name: 'Godavari Delta Aquaculture Farm',
+              owner_name: 'Rajesh Patel',
+              created_at: '2026-03-01T10:00:00Z'
+            }
+          ];
+        }
+        // Migration / Sanitization: Ensure legacy screening records have verified farm ownership
+        if (Array.isArray(parsed.screeningHistory)) {
+          parsed.screeningHistory.forEach((s: any) => {
+            if (!s.farm_id) {
+              s.farm_id = 'FARM-001'; // Assign unassigned legacy screenings to verified default owner
+            }
+          });
+        }
+        return parsed;
       }
     } catch (err) {
       console.warn('[Storage] Failed to read DB file, initializing fresh database.', err);
@@ -202,8 +239,14 @@ class StorageManager {
     return this.db.alerts.slice(0, limit);
   }
 
-  public clearAlerts() {
-    this.db.alerts = [];
+  public clearAlerts(pondId?: string) {
+    if (pondId) {
+      this.db.alerts = this.db.alerts.filter(a => a.pondId !== pondId);
+    } else {
+      // Clear alerts for current user's ponds
+      const userPonds = new Set(this.getPonds().map(p => p.id));
+      this.db.alerts = this.db.alerts.filter(a => !userPonds.has(a.pondId));
+    }
     this.save(this.db);
   }
 
@@ -301,9 +344,85 @@ class StorageManager {
     };
   }
 
+  public getFarms(): FarmRecord[] {
+    return this.db.farms || [];
+  }
+
+  public getFarmById(farmId: string): FarmRecord | undefined {
+    if (!farmId) return undefined;
+    const normalized = farmId.trim().toUpperCase();
+    return (this.db.farms || []).find(f => f.farm_id.toUpperCase() === normalized);
+  }
+
+  public registerFarm(farm: { farm_id: string; name?: string; owner_id?: string; owner_name?: string }): FarmRecord {
+    if (!this.db.farms) {
+      this.db.farms = [];
+    }
+    const normalizedId = farm.farm_id.trim().toUpperCase();
+    const existingIdx = this.db.farms.findIndex(f => f.farm_id.toUpperCase() === normalizedId);
+    const record: FarmRecord = {
+      farm_id: normalizedId,
+      name: farm.name || `Farm ${normalizedId}`,
+      owner_id: farm.owner_id || this.getUser()?.id || 'USER-DEFAULT',
+      owner_name: farm.owner_name || this.getUser()?.name || 'Authorized Farmer',
+      created_at: new Date().toISOString()
+    };
+    if (existingIdx >= 0) {
+      this.db.farms[existingIdx] = record;
+    } else {
+      this.db.farms.push(record);
+    }
+    this.save(this.db);
+    return record;
+  }
+
+  public getUserAuthorizedFarms(userId?: string): string[] {
+    const user = this.getUser();
+    const effectiveUserId = userId || user?.id;
+    const authorized = new Set<string>();
+
+    // 1. Farms registered under this user's ID or name
+    (this.db.farms || []).forEach(f => {
+      if (!effectiveUserId || f.owner_id === effectiveUserId || f.owner_name === user?.name || f.farm_id === 'FARM-001') {
+        authorized.add(f.farm_id.toUpperCase());
+      }
+    });
+
+    // 2. Direct user farm properties
+    if (user?.farmName) {
+      authorized.add(user.farmName.trim().toUpperCase());
+      authorized.add(user.farmName.toLowerCase().replace(/\s+/g, '-').toUpperCase());
+    }
+    if ((user as any)?.farmId) {
+      authorized.add(String((user as any).farmId).trim().toUpperCase());
+    }
+    if ((user as any)?.farm_id) {
+      authorized.add(String((user as any).farm_id).trim().toUpperCase());
+    }
+    if (Array.isArray((user as any)?.farms)) {
+      (user as any).farms.forEach((f: string) => authorized.add(String(f).trim().toUpperCase()));
+    }
+
+    // 3. Ponds belonging to this user
+    this.getPonds().forEach(p => {
+      authorized.add(p.id.toUpperCase());
+      if ((p as any).farm_id) authorized.add(String((p as any).farm_id).trim().toUpperCase());
+      if ((p as any).farmId) authorized.add(String((p as any).farmId).trim().toUpperCase());
+    });
+
+    // Baseline fallback if no farms registered yet
+    if (authorized.size === 0) {
+      authorized.add('FARM-001');
+    }
+
+    return Array.from(authorized);
+  }
+
   public getDiagnosticsForFarm(farmId: string): DiseaseScreeningResult[] {
+    if (!farmId || typeof farmId !== 'string') return [];
+    const normalized = farmId.trim().toUpperCase();
     const history = this.getScreeningHistory();
-    return history.filter(s => !(s as any).farm_id || (s as any).farm_id === farmId);
+    return history.filter(s => ((s as any).farm_id || '').toUpperCase() === normalized);
   }
 }
 
