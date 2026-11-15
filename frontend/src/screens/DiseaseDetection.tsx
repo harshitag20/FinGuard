@@ -154,21 +154,23 @@ const DiseaseDetection: React.FC = () => {
   };
 
   return (
-    <div className={`p-4 pb-28 space-y-4 max-w-lg mx-auto transition-colors duration-500 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>
+    <div className={`p-4 pb-36 space-y-4 max-w-lg mx-auto transition-colors duration-500 ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>
       
       {/* Step Indicator Header */}
       <div className="pt-2">
         <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
           Pathology & Environmental Synthesis
         </span>
-        <h1 className="text-xl font-extrabold tracking-tight">Multilayer Disease Screening</h1>
+        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Multilayer Disease Screening</h1>
         
         {/* Step tabs */}
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl mt-3 text-xs font-bold">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl mt-3 text-xs font-bold gap-1">
           <button 
             onClick={() => setActiveStep('OBSERVE')}
-            className={`flex-1 py-1.5 rounded-xl transition-all ${
-              activeStep === 'OBSERVE' ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400'
+            className={`flex-1 py-2 px-2 rounded-xl transition-all ${
+              activeStep === 'OBSERVE' 
+                ? 'bg-blue-600 text-white shadow-sm font-extrabold' 
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold'
             }`}
           >
             1. Collect Observations
@@ -176,8 +178,10 @@ const DiseaseDetection: React.FC = () => {
           <button 
             onClick={() => result && setActiveStep('RESULTS')}
             disabled={!result}
-            className={`flex-1 py-1.5 rounded-xl transition-all ${
-              activeStep === 'RESULTS' ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 disabled:opacity-50'
+            className={`flex-1 py-2 px-2 rounded-xl transition-all ${
+              activeStep === 'RESULTS' 
+                ? 'bg-blue-600 text-white shadow-sm font-extrabold' 
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold disabled:opacity-40'
             }`}
           >
             2. Differential Candidates
@@ -185,8 +189,10 @@ const DiseaseDetection: React.FC = () => {
           <button 
             onClick={() => result && setActiveStep('VERIFY')}
             disabled={!result}
-            className={`flex-1 py-1.5 rounded-xl transition-all ${
-              activeStep === 'VERIFY' ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 disabled:opacity-50'
+            className={`flex-1 py-2 px-2 rounded-xl transition-all ${
+              activeStep === 'VERIFY' 
+                ? 'bg-blue-600 text-white shadow-sm font-extrabold' 
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold disabled:opacity-40'
             }`}
           >
             3. Verify Findings
@@ -199,21 +205,21 @@ const DiseaseDetection: React.FC = () => {
         <div className="space-y-4 animate-in fade-in">
           
           {/* Species & Pond Context */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-100 dark:border-white/10 shadow-sm space-y-3">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Screening Subject</span>
-              <span className="text-[10px] font-bold text-slate-400">Pond: {pond.name}</span>
+              <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100">Screening Subject</span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Pond: {pond.name}</span>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Affected Fish Species</label>
+              <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Affected Fish Species</label>
               <select
                 value={selectedSpeciesId}
                 onChange={(e) => setSelectedSpeciesId(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl py-2.5 px-3 text-xs font-bold outline-none"
+                className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-3 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {Object.values(SPECIES_CATALOG).map(sp => (
-                  <option key={sp.id} value={sp.id}>
+                  <option key={sp.id} value={sp.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
                     {sp.commonName} ({sp.scientificName})
                   </option>
                 ))}
@@ -221,29 +227,29 @@ const DiseaseDetection: React.FC = () => {
             </div>
 
             {/* Current Pond Telemetry Pill Box */}
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 space-y-1.5">
-              <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-1.5">
+              <div className="flex justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300">
                 <span>Observed Pond Telemetry:</span>
-                <span className="text-blue-600 dark:text-blue-400 font-bold">Auto-synced</span>
+                <span className="text-blue-600 dark:text-blue-400 font-extrabold">Auto-synced</span>
               </div>
               <div className="grid grid-cols-4 gap-1 text-center text-xs">
-                <div className="p-1 bg-white dark:bg-slate-900 rounded-lg">
-                  <span className="text-[8px] text-slate-400 block uppercase">DO</span>
-                  <strong className={pond.metrics.oxygen < 3.0 ? 'text-red-500' : 'text-blue-600'}>
+                <div className="p-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 block uppercase font-bold">DO</span>
+                  <strong className={`font-black ${pond.metrics.oxygen < 3.0 ? 'text-red-500' : 'text-blue-600 dark:text-blue-400'}`}>
                     {pond.metrics.oxygen} mg/L
                   </strong>
                 </div>
-                <div className="p-1 bg-white dark:bg-slate-900 rounded-lg">
-                  <span className="text-[8px] text-slate-400 block uppercase">Temp</span>
-                  <strong>{pond.metrics.temp}°C</strong>
+                <div className="p-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Temp</span>
+                  <strong className="text-slate-900 dark:text-white font-black">{pond.metrics.temp}°C</strong>
                 </div>
-                <div className="p-1 bg-white dark:bg-slate-900 rounded-lg">
-                  <span className="text-[8px] text-slate-400 block uppercase">pH</span>
-                  <strong>{pond.metrics.ph}</strong>
+                <div className="p-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 block uppercase font-bold">pH</span>
+                  <strong className="text-slate-900 dark:text-white font-black">{pond.metrics.ph}</strong>
                 </div>
-                <div className="p-1 bg-white dark:bg-slate-900 rounded-lg">
-                  <span className="text-[8px] text-slate-400 block uppercase">TAN</span>
-                  <strong>{pond.metrics.ammonia} mg/L</strong>
+                <div className="p-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5">
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 block uppercase font-bold">TAN</span>
+                  <strong className="text-slate-900 dark:text-white font-black">{pond.metrics.ammonia} mg/L</strong>
                 </div>
               </div>
             </div>
@@ -301,12 +307,12 @@ const DiseaseDetection: React.FC = () => {
           </div>
 
           {/* Observable Symptoms Selector */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-100 dark:border-white/10 shadow-sm space-y-2.5">
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2.5">
+            <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100">
               Clinical Observations & Behavior
             </span>
 
-            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+            <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
               {SYMPTOM_OPTIONS.map(sym => {
                 const isSelected = selectedSymptoms.includes(sym.id);
                 return (
@@ -315,13 +321,13 @@ const DiseaseDetection: React.FC = () => {
                     onClick={() => toggleSymptom(sym.id)}
                     className={`p-2.5 rounded-xl border text-xs cursor-pointer flex items-center justify-between transition-all ${
                       isSelected 
-                        ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-400 text-blue-900 dark:text-blue-300 font-bold'
-                        : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'
+                        ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-900 dark:text-blue-200 font-extrabold' 
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold hover:border-blue-400'
                     }`}
                   >
-                    <span>{sym.label}</span>
+                    <span className="font-bold">{sym.label}</span>
                     <div className={`w-4 h-4 rounded flex items-center justify-center border ${
-                      isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'
+                      isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 dark:border-slate-600'
                     }`}>
                       {isSelected && <CheckCircle2 size={12} />}
                     </div>
@@ -332,7 +338,7 @@ const DiseaseDetection: React.FC = () => {
 
             {/* Clinical History notes */}
             <div className="pt-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 Symptom History & Recent Environmental Changes
               </label>
               <textarea
@@ -340,34 +346,34 @@ const DiseaseDetection: React.FC = () => {
                 onChange={(e) => setSymptomHistory(e.target.value)}
                 rows={2}
                 placeholder="e.g. Sudden cold spell, heavy rainfall, or abnormal feeding drop observed..."
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 text-xs font-semibold outline-none mt-1"
+                className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl p-2.5 text-xs font-semibold outline-none mt-1 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Quick Presets */}
             <div className="pt-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 block mb-1.5">
                 Quick Test Reference Scenarios
               </span>
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
                   onClick={() => loadPreset('eus')}
-                  className="px-2.5 py-1 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-bold hover:bg-red-500/20 active:scale-95 transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 text-xs font-extrabold hover:bg-red-200 active:scale-95 transition-all"
                 >
                   🔴 EUS Ulcers
                 </button>
                 <button
                   type="button"
                   onClick={() => loadPreset('fin_rot')}
-                  className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold hover:bg-amber-500/20 active:scale-95 transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900 text-xs font-extrabold hover:bg-amber-200 active:scale-95 transition-all"
                 >
                   🟡 Fin & Tail Rot
                 </button>
                 <button
                   type="button"
                   onClick={() => loadPreset('white_spot')}
-                  className="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold hover:bg-blue-500/20 active:scale-95 transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900 text-xs font-extrabold hover:bg-blue-200 active:scale-95 transition-all"
                 >
                   ⚪ White Spot (Ich)
                 </button>
@@ -403,7 +409,7 @@ const DiseaseDetection: React.FC = () => {
                   setCustomApiKey(e.target.value);
                   localStorage.setItem('finguard_gemini_api_key', e.target.value.trim());
                 }}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl p-2 text-xs font-mono outline-none"
+                className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-xl p-2 text-xs font-mono outline-none"
               />
               <p className="text-[10px] text-slate-400">
                 FinGuard runs ICAR-CIFA veterinary synthesis locally. Adding a free Gemini key unlocks live multimodal visual reasoning.
@@ -633,12 +639,12 @@ const DiseaseDetection: React.FC = () => {
       {/* STEP 3: VERIFICATION WORKFLOW */}
       {activeStep === 'VERIFY' && result && (
         <div className="space-y-4 animate-in fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-100 dark:border-white/10 shadow-sm space-y-3">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
             <div>
-              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
                 Verification & Follow-up Observations
               </h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-0.5">
                 Refine preliminary screening results by entering repeat water tests, microscopic findings, or certified veterinary input.
               </p>
             </div>
@@ -646,37 +652,37 @@ const DiseaseDetection: React.FC = () => {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Repeat DO (mg/L)</label>
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Repeat DO (mg/L)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={repeatDO}
                     onChange={(e) => setRepeatDO(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 text-xs font-bold outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Repeat Temp (°C)</label>
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Repeat Temp (°C)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={repeatTemp}
                     onChange={(e) => setRepeatTemp(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 text-xs font-bold outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               {/* Microscopy Checkbox */}
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl space-y-2 border border-slate-100 dark:border-white/5">
-                <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-2xl space-y-2 border border-slate-200 dark:border-slate-700">
+                <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer text-slate-900 dark:text-white">
                   <input
                     type="checkbox"
                     checked={microscopyConducted}
                     onChange={(e) => setMicroscopyConducted(e.target.checked)}
-                    className="w-4 h-4 rounded text-blue-600"
+                    className="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-600"
                   />
-                  <span>Wet-Mount Microscopy / Gill Clip Examined</span>
+                  <span className="text-slate-900 dark:text-slate-100 font-bold">Wet-Mount Microscopy / Gill Clip Examined</span>
                 </label>
                 {microscopyConducted && (
                   <textarea
@@ -684,21 +690,21 @@ const DiseaseDetection: React.FC = () => {
                     onChange={(e) => setGillClipNotes(e.target.value)}
                     placeholder="e.g. Horseshoe macronucleus observed (Ich), or branched hyphae seen..."
                     rows={2}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl p-2 text-xs font-medium outline-none"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 )}
               </div>
 
               {/* Veterinary Consultation */}
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl space-y-2 border border-slate-100 dark:border-white/5">
-                <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-2xl space-y-2 border border-slate-200 dark:border-slate-700">
+                <label className="flex items-center space-x-2 text-xs font-bold cursor-pointer text-slate-900 dark:text-white">
                   <input
                     type="checkbox"
                     checked={expertConsulted}
                     onChange={(e) => setExpertConsulted(e.target.checked)}
-                    className="w-4 h-4 rounded text-blue-600"
+                    className="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-600"
                   />
-                  <span>Verified by Aquatic Veterinarian / Fisheries Officer</span>
+                  <span className="text-slate-900 dark:text-slate-100 font-bold">Verified by Aquatic Veterinarian / Fisheries Officer</span>
                 </label>
                 {expertConsulted && (
                   <input
@@ -706,7 +712,7 @@ const DiseaseDetection: React.FC = () => {
                     value={expertName}
                     onChange={(e) => setExpertName(e.target.value)}
                     placeholder="Officer Name / Institute (e.g. CIFA / KVK)"
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl p-2 text-xs font-bold outline-none"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 )}
               </div>
@@ -726,7 +732,7 @@ const DiseaseDetection: React.FC = () => {
 
               <button
                 onClick={() => setActiveStep('RESULTS')}
-                className="w-full text-slate-400 hover:text-slate-600 text-xs font-semibold text-center py-1"
+                className="w-full text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs font-bold text-center py-2"
               >
                 Cancel and return to Results
               </button>

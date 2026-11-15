@@ -532,7 +532,7 @@ const AIAssistant: React.FC = () => {
             <button
               onClick={handleStartResearch}
               disabled={isResearching || !query.trim()}
-              className="flex items-center space-x-1 text-[10px] font-black text-purple-600 dark:text-purple-400 hover:text-purple-700 disabled:opacity-30 uppercase tracking-wider"
+              className="flex items-center space-x-1 text-[11px] font-extrabold text-purple-700 dark:text-purple-300 hover:text-purple-800 dark:hover:text-purple-200 disabled:opacity-30 uppercase tracking-wider"
             >
               <BookOpen size={12} />
               <span>Synthesize FAO/ICAR Research on this query</span>

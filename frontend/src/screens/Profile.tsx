@@ -163,7 +163,7 @@ const Profile: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Filter species..."
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs font-semibold outline-none"
+                  className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs font-semibold outline-none"
                 />
               </div>
 

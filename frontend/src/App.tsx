@@ -138,7 +138,14 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('finguard-theme', theme);
+    try {
+      localStorage.setItem('finguard-theme', theme);
+    } catch {}
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
 
   const t = (key: string) => {
@@ -212,8 +219,7 @@ const App: React.FC = () => {
           <NavigationContext.Provider value={{ currentScreen, navigate: setCurrentScreen }}>
             <PondContext.Provider value={{ pond, setPond }}>
               <div 
-                className={`min-h-screen max-w-lg mx-auto flex flex-col relative shadow-2xl transition-colors duration-500 ${theme === 'dark' ? 'bg-[#020617] dark' : 'bg-[#f0f4f8]'}`}
-                style={{ color: theme === 'dark' ? '#F1F5F9' : COLORS.darkText }}
+                className={`min-h-screen max-w-lg mx-auto flex flex-col relative shadow-2xl transition-colors duration-500 ${theme === 'dark' ? 'bg-[#020617] text-slate-100 dark' : 'bg-[#f0f4f8] text-slate-900'}`}
               >
                 <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar">
                   {renderScreen()}
