@@ -1,0 +1,26 @@
+{
+  "name": "finguard-prune-integration-ts",
+  "version": "1.0.0",
+  "description": "Secure AI Gateway Integration between Prune and FinGuard Core",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test dist/tests/**/*.test.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "finguard",
+    "prune",
+    "gemini",
+    "ai-gateway",
+    "aquaculture"
+  ],
+  "author": "FinGuard AI Infrastructure Team",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  }
+}
+

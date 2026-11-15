@@ -1,0 +1,68 @@
+[
+  {
+    "observation_id": "OBS-001",
+    "farm_id": "FARM-001",
+    "pond_id": "POND-01",
+    "observation_type": "symptom_progression",
+    "description": "Three more Rohu in Pond 1 are showing frayed fins and sluggish movement along the dyke.",
+    "reported_by": "Ramesh Borah (Pond Manager)",
+    "timestamp": "2026-10-18T07:15:00Z",
+    "source": "farmer_voice_report",
+    "related_diagnosis_id": "DX-001",
+    "verification_status": "unverified",
+    "data_source": "mock"
+  },
+  {
+    "observation_id": "OBS-002",
+    "farm_id": "FARM-001",
+    "pond_id": "POND-02",
+    "observation_type": "environmental_event",
+    "description": "Heavy monsoon showers overnight caused pond water to turn turbid and clayey. Fish appear slightly distressed at inlet.",
+    "reported_by": "Ramesh Borah (Pond Manager)",
+    "timestamp": "2026-11-01T06:45:00Z",
+    "source": "farmer_direct_input",
+    "related_diagnosis_id": "DX-002",
+    "verification_status": "unverified",
+    "data_source": "mock"
+  },
+  {
+    "observation_id": "OBS-003",
+    "farm_id": "FARM-001",
+    "pond_id": "POND-01",
+    "observation_type": "behavioural_change",
+    "description": "Rohu stopped feeding enthusiastically; floating feed pellets remained unconsumed after 45 minutes.",
+    "reported_by": "Sunil Hazarika (Farm Technician)",
+    "timestamp": "2026-11-09T17:30:00Z",
+    "source": "farmer_app_entry",
+    "related_diagnosis_id": "DX-003",
+    "verification_status": "unverified",
+    "data_source": "mock"
+  },
+  {
+    "observation_id": "OBS-101",
+    "farm_id": "FARM-002",
+    "pond_id": "POND-A1",
+    "observation_type": "mortality_event",
+    "description": "Recovered 24 dead tilapia this morning with swollen eyes and dark coloration around the head.",
+    "reported_by": "Venkatesh Rao (Farm Superintendent)",
+    "timestamp": "2026-10-21T06:30:00Z",
+    "source": "farmer_voice_report",
+    "related_diagnosis_id": "DX-101",
+    "verification_status": "unverified",
+    "data_source": "mock"
+  },
+  {
+    "observation_id": "OBS-102",
+    "farm_id": "FARM-002",
+    "pond_id": "POND-B1",
+    "observation_type": "feeding_anomaly",
+    "description": "Pangasius catfish surfacing irregularly and refusing sinking pellet feed in northern sector.",
+    "reported_by": "K. Srinivas (Feeder)",
+    "timestamp": "2026-11-04T11:00:00Z",
+    "source": "farmer_direct_input",
+    "related_diagnosis_id": "DX-102",
+    "verification_status": "unverified",
+    "data_source": "mock"
+  }
+]
+

@@ -3,6 +3,7 @@ import cors from 'cors';
 import { requestLogger } from './middleware/logger.middleware';
 import { errorHandler } from './middleware/errorHandler.middleware';
 import apiRoutes from './routes';
+import farmAgentRoutes from './routes/farmAgent.routes';
 
 export const app = express();
 
@@ -16,13 +17,13 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    service: 'AquaSentinel Backend Microservice'
+    service: 'AquaSentinel / FinGuard Core Backend Microservice'
   });
 });
 
-// Mount modular API routes
+// Dual API prefix mounting for both standard /api and versioned /api/v1 paths
 app.use('/api', apiRoutes);
+app.use('/api/v1/farms', farmAgentRoutes);
 
 // Centralized error handling
 app.use(errorHandler);
-

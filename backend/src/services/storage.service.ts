@@ -12,12 +12,28 @@ import { PondConfig, UserData, DiseaseScreeningResult, TelemetryAlert, PondMetri
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export interface CentralObservation {
+  central_id: string;
+  observation_id: string;
+  idempotency_key: string;
+  farm_id: string;
+  pond_id: string;
+  observation_type: string;
+  description: string;
+  reported_by: string;
+  timestamp: string;
+  source: string;
+  related_diagnosis_id?: string;
+  committed_at: string;
+}
+
 interface DatabaseSchema {
   user: UserData | null;
   ponds: PondConfig[];
   telemetryHistory: Record<string, PondMetrics[]>;
   alerts: TelemetryAlert[];
   screeningHistory: DiseaseScreeningResult[];
+  observations: CentralObservation[];
 }
 
 const DB_DIR = process.env.DATABASE_DIR
@@ -73,7 +89,8 @@ const INITIAL_DB: DatabaseSchema = {
   ],
   telemetryHistory: {},
   alerts: [],
-  screeningHistory: []
+  screeningHistory: [],
+  observations: []
 };
 
 class StorageManager {
@@ -205,6 +222,77 @@ class StorageManager {
 
   public getScreeningResultById(id: string): DiseaseScreeningResult | undefined {
     return this.db.screeningHistory.find(s => s.id === id);
+  }
+
+  public saveObservation(payload: any, idempotencyKey: string): { record: CentralObservation; isDuplicate: boolean } {
+    if (!this.db.observations) {
+      this.db.observations = [];
+    }
+
+    const existing = this.db.observations.find(
+      o => o.idempotency_key === idempotencyKey || (payload.observation_id && o.observation_id === payload.observation_id)
+    );
+
+    if (existing) {
+      return { record: existing, isDuplicate: true };
+    }
+
+    const centralId = `CENTRAL-OBS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const committedAt = new Date().toISOString();
+
+    const record: CentralObservation = {
+      central_id: centralId,
+      observation_id: payload.observation_id || `OBS-${Date.now()}`,
+      idempotency_key: idempotencyKey,
+      farm_id: payload.farm_id,
+      pond_id: payload.pond_id || 'Pond-01',
+      observation_type: payload.observation_type || 'general',
+      description: payload.description || '',
+      reported_by: payload.reported_by || 'Farmer',
+      timestamp: payload.timestamp || committedAt,
+      source: payload.source || 'farmer_chat',
+      related_diagnosis_id: payload.related_diagnosis_id,
+      committed_at: committedAt
+    };
+
+    this.db.observations.unshift(record);
+    if (this.db.observations.length > 500) {
+      this.db.observations.pop();
+    }
+    this.save(this.db);
+    return { record, isDuplicate: false };
+  }
+
+  public getObservations(farmId?: string): CentralObservation[] {
+    if (!this.db.observations) return [];
+    if (!farmId) return this.db.observations;
+    return this.db.observations.filter(o => o.farm_id === farmId);
+  }
+
+  public getFarmProfile(farmId: string): any {
+    const user = this.getUser();
+    const ponds = this.getPonds();
+    return {
+      farm_id: farmId,
+      farm_name: user?.name ? `${user.name}'s Aquaculture Farm` : 'Godavari Delta Aquaculture Farm',
+      owner_name: user?.name || 'Rajesh Patel',
+      location: user?.location || 'Bhimavaram, West Godavari, Andhra Pradesh',
+      coordinates: { latitude: 16.54, longitude: 81.52 },
+      total_ponds: ponds.length,
+      ponds: ponds.map(p => ({
+        pond_id: p.id,
+        name: p.name,
+        size_hectares: p.tankSize,
+        species: p.speciesIds,
+        stock_count: p.fishCount,
+        status: p.status
+      })),
+      last_updated: new Date().toISOString()
+    };
+  }
+
+  public getDiagnosticsForFarm(farmId: string): DiseaseScreeningResult[] {
+    return this.getScreeningHistory();
   }
 }
 

@@ -1,0 +1,14 @@
+{
+  "category": "multimodal_image",
+  "has_images": true,
+  "farm_id": "FARM-MOCK-005",
+  "feature_id": "multimodal_disease_screening",
+  "workload": "finGuard_core",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Attached pond camera image: fish gill lesion photo. Examine for Columnaris."
+    }
+  ]
+}
+

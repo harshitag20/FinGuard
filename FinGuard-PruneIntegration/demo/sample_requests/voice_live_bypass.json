@@ -1,0 +1,14 @@
+{
+  "category": "voice_live",
+  "is_voice_session": true,
+  "farm_id": "FARM-MOCK-004",
+  "feature_id": "voice_expert_live",
+  "workload": "finGuard_voice_expert",
+  "messages": [
+    {
+      "role": "user",
+      "content": "[Real-time PCM Audio Stream Chunk: 24kHz / WebSockets]"
+    }
+  ]
+}
+

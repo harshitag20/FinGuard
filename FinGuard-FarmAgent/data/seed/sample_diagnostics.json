@@ -1,0 +1,146 @@
+[
+  {
+    "diagnosis_id": "DX-001",
+    "farm_id": "FARM-001",
+    "species": "Rohu",
+    "pond_id": "POND-01",
+    "suspected_disease": "Bacterial Fin and Tail Rot",
+    "pathogen_candidate": "Aeromonas hydrophila / Flavobacterium spp.",
+    "confidence": "moderate",
+    "observed_symptoms": [
+      "Frayed and ragged caudal fin edges",
+      "Whitish necrotic border along fin rays",
+      "Sluggish swimming near pond dykes",
+      "Mild loss of appetite"
+    ],
+    "differential_diagnoses": [
+      "Columnaris disease (Flavobacterium columnare)",
+      "Mechanical damage from rough handling with secondary fungal infection"
+    ],
+    "water_quality_context": {
+      "temperature_celsius": 28.5,
+      "dissolved_oxygen_mg_l": 4.1,
+      "ph": 7.4,
+      "unionized_ammonia_mg_l": 0.045
+    },
+    "verification_status": "lab_verified",
+    "verification_notes": "Aeromonas hydrophila isolated on RS media; gill scraping negative for protozoans.",
+    "created_at": "2026-10-15T09:30:00Z",
+    "data_source": "mock"
+  },
+  {
+    "diagnosis_id": "DX-002",
+    "farm_id": "FARM-001",
+    "species": "Catla",
+    "pond_id": "POND-02",
+    "suspected_disease": "Epizootic Ulcerative Syndrome (EUS)",
+    "pathogen_candidate": "Aphanomyces invadans (oomycete)",
+    "confidence": "high",
+    "observed_symptoms": [
+      "Deep red dermal ulcers with necrotic center on dorsum",
+      "Loss of scales and hemorrhagic patches",
+      "Erratic swimming and periodic gasping at surface",
+      "Severe anorexia"
+    ],
+    "differential_diagnoses": [
+      "Severe Aeromonas septicemia",
+      "Parasitic Argulus infestation with secondary ulceration"
+    ],
+    "water_quality_context": {
+      "temperature_celsius": 24.0,
+      "dissolved_oxygen_mg_l": 5.2,
+      "ph": 6.5,
+      "unionized_ammonia_mg_l": 0.02
+    },
+    "verification_status": "pending",
+    "verification_notes": "Histopathology sent to central fisheries lab; aseptate hyphae noted on squash mount.",
+    "created_at": "2026-11-02T14:15:00Z",
+    "data_source": "mock"
+  },
+  {
+    "diagnosis_id": "DX-003",
+    "farm_id": "FARM-001",
+    "species": "Rohu",
+    "pond_id": "POND-01",
+    "suspected_disease": "Monogenean Gill Fluke Infestation",
+    "pathogen_candidate": "Dactylogyrus spp.",
+    "confidence": "high",
+    "observed_symptoms": [
+      "Hypersecretion of mucus on gills",
+      "Pale, swollen gill filaments with clamped opercula",
+      "Fish flashing / scraping against bamboo poles"
+    ],
+    "differential_diagnoses": [
+      "Gyrodactylus skin infestation",
+      "Trichodiniasis"
+    ],
+    "water_quality_context": {
+      "temperature_celsius": 29.0,
+      "dissolved_oxygen_mg_l": 4.8,
+      "ph": 7.8,
+      "unionized_ammonia_mg_l": 0.03
+    },
+    "verification_status": "field_confirmed",
+    "verification_notes": "Microscopic examination of gill biopsy confirmed anchoring hooks of Dactylogyrus.",
+    "created_at": "2026-11-10T11:00:00Z",
+    "data_source": "mock"
+  },
+  {
+    "diagnosis_id": "DX-101",
+    "farm_id": "FARM-002",
+    "species": "Nile Tilapia",
+    "pond_id": "POND-A1",
+    "suspected_disease": "Streptococcosis",
+    "pathogen_candidate": "Streptococcus iniae / Streptococcus agalactiae",
+    "confidence": "high",
+    "observed_symptoms": [
+      "Unilateral exophthalmia (pop-eye) with corneal opacity",
+      "Erratic, C-shaped spiral swimming near surface",
+      "Hemorrhages around base of dorsal fins and anus",
+      "Acute morning mortality in heavy stock"
+    ],
+    "differential_diagnoses": [
+      "Tilapia Lake Virus (TiLV)",
+      "Edwardsiellosis (Edwardsiella tarda)"
+    ],
+    "water_quality_context": {
+      "temperature_celsius": 32.5,
+      "dissolved_oxygen_mg_l": 3.6,
+      "ph": 8.3,
+      "unionized_ammonia_mg_l": 0.08
+    },
+    "verification_status": "lab_verified",
+    "verification_notes": "Gram-positive cocci in pairs/chains cultured from brain and kidney tissue.",
+    "created_at": "2026-10-20T08:45:00Z",
+    "data_source": "mock"
+  },
+  {
+    "diagnosis_id": "DX-102",
+    "farm_id": "FARM-002",
+    "species": "Pangasius",
+    "pond_id": "POND-B1",
+    "suspected_disease": "Enteric Septicemia of Catfish / Bacillary Necrosis",
+    "pathogen_candidate": "Edwardsiella ictaluri",
+    "confidence": "moderate",
+    "observed_symptoms": [
+      "Pale body coloration with petechial hemorrhages",
+      "Distended abdomen (ascites) filled with cloudy fluid",
+      "Open depigmented lesions ('hole-in-the-head') on skull"
+    ],
+    "differential_diagnoses": [
+      "Aeromonas sobria septicemia",
+      "Channel catfish virus disease (CCVD)"
+    ],
+    "water_quality_context": {
+      "temperature_celsius": 30.0,
+      "dissolved_oxygen_mg_l": 4.0,
+      "ph": 7.2,
+      "unionized_ammonia_mg_l": 0.06
+    },
+    "verification_status": "pending",
+    "verification_notes": "Spleen and liver samples preserved in formalin and sent for PCR verification.",
+    "created_at": "2026-11-05T16:20:00Z",
+    "data_source": "mock"
+  }
+]
+

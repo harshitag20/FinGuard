@@ -1,0 +1,93 @@
+[
+  {
+    "farm_id": "FARM-001",
+    "name": "Brahmaputra Carp Hatchery & Grow-out",
+    "location": "Guwahati, Assam, India",
+    "species_profile": [
+      {
+        "common_name": "Rohu",
+        "scientific_name": "Labeo rohita",
+        "stocking_density_per_m2": 3.5,
+        "life_stage": "Grow-out"
+      },
+      {
+        "common_name": "Catla",
+        "scientific_name": "Gibelion catla",
+        "stocking_density_per_m2": 2.0,
+        "life_stage": "Grow-out"
+      }
+    ],
+    "ponds": [
+      {
+        "pond_id": "POND-01",
+        "area_hectares": 1.2,
+        "average_depth_meters": 1.8,
+        "primary_species": "Rohu",
+        "aeration_installed": true
+      },
+      {
+        "pond_id": "POND-02",
+        "area_hectares": 0.8,
+        "average_depth_meters": 1.5,
+        "primary_species": "Catla",
+        "aeration_installed": false
+      }
+    ],
+    "environmental_baseline": {
+      "optimal_temp_celsius": [26.0, 32.0],
+      "optimal_dissolved_oxygen_mg_l": [5.0, 8.0],
+      "optimal_ph": [6.8, 8.2],
+      "max_tolerable_ammonia_mg_l": 0.05
+    },
+    "maritime_agent_id": "agent-farguard-farm-001",
+    "provisioning_status": "provisioned",
+    "created_at": "2026-09-01T08:00:00Z",
+    "data_source": "mock"
+  },
+  {
+    "farm_id": "FARM-002",
+    "name": "Krishna Delta Aquaculture Estate",
+    "location": "Vijayawada, Andhra Pradesh, India",
+    "species_profile": [
+      {
+        "common_name": "Nile Tilapia",
+        "scientific_name": "Oreochromis niloticus",
+        "stocking_density_per_m2": 12.0,
+        "life_stage": "Juvenile to Harvest"
+      },
+      {
+        "common_name": "Pangasius (Striped Catfish)",
+        "scientific_name": "Pangasianodon hypophthalmus",
+        "stocking_density_per_m2": 8.0,
+        "life_stage": "Grow-out"
+      }
+    ],
+    "ponds": [
+      {
+        "pond_id": "POND-A1",
+        "area_hectares": 2.5,
+        "average_depth_meters": 2.2,
+        "primary_species": "Nile Tilapia",
+        "aeration_installed": true
+      },
+      {
+        "pond_id": "POND-B1",
+        "area_hectares": 3.0,
+        "average_depth_meters": 2.5,
+        "primary_species": "Pangasius",
+        "aeration_installed": true
+      }
+    ],
+    "environmental_baseline": {
+      "optimal_temp_celsius": [27.0, 33.0],
+      "optimal_dissolved_oxygen_mg_l": [4.0, 7.5],
+      "optimal_ph": [7.0, 8.5],
+      "max_tolerable_ammonia_mg_l": 0.1
+    },
+    "maritime_agent_id": "agent-farguard-farm-002",
+    "provisioning_status": "provisioned",
+    "created_at": "2026-09-10T10:30:00Z",
+    "data_source": "mock"
+  }
+]
+

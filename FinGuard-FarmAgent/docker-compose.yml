@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  control-plane:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m uvicorn control_plane.main:app --host 0.0.0.0 --port 8080
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - MARITIME_API_KEY=${MARITIME_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - AGENT_DISPATCH_MODE=local
+    volumes:
+      - ./data:/app/data
+
+  farm-agent-001:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - FARM_ID=FARM-001
+      - PORT=8000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - DATA_DIR=/data
+    volumes:
+      - ./data/runtime_farm1:/data
+
+  farm-agent-002:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      - FARM_ID=FARM-002
+      - PORT=8000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - DATA_DIR=/data
+    volumes:
+      - ./data/runtime_farm2:/data
+

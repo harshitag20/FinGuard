@@ -1,0 +1,43 @@
+[
+  {
+    "source_id": "SRC-EUS-01",
+    "title": "Epizootic Ulcerative Syndrome (EUS) Technical Disease Card",
+    "authors": "World Organisation for Animal Health (WOAH / OIE)",
+    "year": 2021,
+    "publication": "Aquatic Animal Health Code & Manual of Diagnostic Tests for Aquatic Animals",
+    "topics": ["EUS", "Aphanomyces invadans", "Rohu", "Catla", "Carp diseases"],
+    "key_findings": "Epizootic Ulcerative Syndrome is caused by the oomycete Aphanomyces invadans. It is characterized by severe necrotising ulcerative dermatitis followed by granulomatous myositis. Outbreaks frequently occur following sudden seasonal water temperature drops (below 25°C) and post-monsoon pH drops. Primary treatment revolves around water quality stabilization, application of agricultural lime (CaCO3) to buffer pH, and potassium permanganate or approved biocides in early stages.",
+    "verification_level": "verified_scientific_literature"
+  },
+  {
+    "source_id": "SRC-FINROT-02",
+    "title": "Bacterial Diseases of Freshwater Carps in South Asia: Aeromonas and Flavobacterium complexes",
+    "authors": "Central Institute of Freshwater Aquaculture (ICAR-CIFA)",
+    "year": 2023,
+    "publication": "CIFA Disease Advisory Bulletin No. 44",
+    "topics": ["Fin Rot", "Tail Rot", "Aeromonas hydrophila", "Flavobacterium", "Rohu"],
+    "key_findings": "Bacterial fin and tail rot are predominantly opportunistic infections triggered by elevated organic load, un-ionized ammonia spikes (>0.03 mg/L), and sub-optimal dissolved oxygen (<4.0 mg/L). Lesions typically progress from distal fin margins proximally. Management includes 20-30% water exchange, reduction of feeding rate by 50% until mortality halts, and localized salt baths (2-3% NaCl dip) for breeding stock.",
+    "verification_level": "verified_scientific_literature"
+  },
+  {
+    "source_id": "SRC-STREP-03",
+    "title": "Streptococcosis in Warmwater Aquaculture: Tilapia Health Management Guide",
+    "authors": "Food and Agriculture Organization (FAO)",
+    "year": 2022,
+    "publication": "FAO Fisheries and Aquaculture Technical Paper 680",
+    "topics": ["Streptococcus iniae", "Streptococcus agalactiae", "Tilapia", "Exophthalmia", "Meningoencephalitis"],
+    "key_findings": "Streptococcosis in Oreochromis niloticus causes acute septicemia and meningoencephalitis with classical signs of exophthalmia (pop-eye), corneal opacity, and erratic 'C-shape' spinning. Peak incidence coincides with high water temperatures (>31°C) combined with dissolved oxygen depression (<3.5 mg/L) and high stocking densities. Vaccination, density reduction, and emergency supplemental aeration are key preventive strategies.",
+    "verification_level": "verified_scientific_literature"
+  },
+  {
+    "source_id": "SRC-CATFISH-04",
+    "title": "Enteric Septicemia and Bacillary Necrosis in Pangasius hypophthalmus",
+    "authors": "Network of Aquaculture Centres in Asia-Pacific (NACA)",
+    "year": 2022,
+    "publication": "NACA Health Advisory Series",
+    "topics": ["Pangasius", "Edwardsiella ictaluri", "Bacillary necrosis", "Ascites"],
+    "key_findings": "Edwardsiella ictaluri causes enteric septicemia in catfish, leading to petechial hemorrhages, severe ascites, and punctate lesions on the cranium. Poor sediment condition and accumulated un-ionized ammonia are major predisposing triggers. Feeding withholding during initial infection onset significantly lowers gut bacterial translocation.",
+    "verification_level": "verified_scientific_literature"
+  }
+]
+

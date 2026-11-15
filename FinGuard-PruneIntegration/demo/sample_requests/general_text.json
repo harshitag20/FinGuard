@@ -1,0 +1,13 @@
+{
+  "category": "general_text",
+  "farm_id": "FARM-MOCK-001",
+  "feature_id": "general_chat",
+  "workload": "finGuard_core",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the recommended dissolved oxygen saturation percentage for warmwater pond aquaculture?"
+    }
+  ]
+}
+

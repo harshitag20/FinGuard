@@ -4,11 +4,13 @@ import diseaseRoutes from './disease.routes';
 import simulationRoutes from './simulation.routes';
 import userRoutes from './user.routes';
 import analyticsRoutes from './analytics.routes';
+import farmAgentRoutes from './farmAgent.routes';
 import { speciesController } from '../controllers/species.controller';
 import { diseaseController } from '../controllers/disease.controller';
 import { simulationController } from '../controllers/simulation.controller';
 import { userController } from '../controllers/user.controller';
 import { analyticsController } from '../controllers/analytics.controller';
+import { aiChatController } from '../controllers/aiChat.controller';
 
 const router = Router();
 
@@ -17,6 +19,10 @@ router.use('/species', speciesRoutes);
 router.use('/disease', diseaseRoutes);
 router.use('/simulation', simulationRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/farms', farmAgentRoutes);
+
+// Model Routing Gateway (Prune / Gemini)
+router.post('/ai/chat', aiChatController.chat);
 
 // Compatibility aliases matching existing frontend API client & test suite contracts
 router.get('/diseases', diseaseController.getDiseases);

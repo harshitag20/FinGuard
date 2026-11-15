@@ -1,0 +1,16 @@
+{
+  "category": "farm_conversation",
+  "farm_id": "FARM-MOCK-003",
+  "feature_id": "farm_agent",
+  "workload": "finGuard_farm_agent",
+  "run_id": "run_agent_pond7_feed",
+  "run_budget_usd": 0.05,
+  "max_steps": 4,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Compare feeding intake for juvenile barramundi between week 3 and week 4 based on recorded feed logs."
+    }
+  ]
+}
+

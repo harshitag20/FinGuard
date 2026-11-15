@@ -1,0 +1,81 @@
+[
+  {
+    "reading_id": "WQ-001",
+    "farm_id": "FARM-001",
+    "pond_id": "POND-01",
+    "temperature_celsius": 28.2,
+    "dissolved_oxygen_mg_l": 4.2,
+    "ph": 7.3,
+    "unionized_ammonia_mg_l": 0.042,
+    "alkalinity_mg_l": 110.0,
+    "turbidity_ntu": 18.5,
+    "timestamp": "2026-10-14T06:00:00Z",
+    "data_source": "mock_sensor"
+  },
+  {
+    "reading_id": "WQ-002",
+    "farm_id": "FARM-001",
+    "pond_id": "POND-01",
+    "temperature_celsius": 28.8,
+    "dissolved_oxygen_mg_l": 5.8,
+    "ph": 7.6,
+    "unionized_ammonia_mg_l": 0.038,
+    "alkalinity_mg_l": 115.0,
+    "turbidity_ntu": 17.0,
+    "timestamp": "2026-10-15T15:00:00Z",
+    "data_source": "mock_sensor"
+  },
+  {
+    "reading_id": "WQ-003",
+    "farm_id": "FARM-001",
+    "pond_id": "POND-02",
+    "temperature_celsius": 23.8,
+    "dissolved_oxygen_mg_l": 5.1,
+    "ph": 6.4,
+    "unionized_ammonia_mg_l": 0.021,
+    "alkalinity_mg_l": 85.0,
+    "turbidity_ntu": 42.0,
+    "timestamp": "2026-11-01T08:00:00Z",
+    "data_source": "mock_sensor"
+  },
+  {
+    "reading_id": "WQ-004",
+    "farm_id": "FARM-001",
+    "pond_id": "POND-01",
+    "temperature_celsius": 29.1,
+    "dissolved_oxygen_mg_l": 4.6,
+    "ph": 7.7,
+    "unionized_ammonia_mg_l": 0.032,
+    "alkalinity_mg_l": 112.0,
+    "turbidity_ntu": 19.0,
+    "timestamp": "2026-11-10T06:30:00Z",
+    "data_source": "mock_sensor"
+  },
+  {
+    "reading_id": "WQ-101",
+    "farm_id": "FARM-002",
+    "pond_id": "POND-A1",
+    "temperature_celsius": 32.8,
+    "dissolved_oxygen_mg_l": 3.4,
+    "ph": 8.4,
+    "unionized_ammonia_mg_l": 0.088,
+    "alkalinity_mg_l": 160.0,
+    "turbidity_ntu": 25.0,
+    "timestamp": "2026-10-19T06:00:00Z",
+    "data_source": "mock_sensor"
+  },
+  {
+    "reading_id": "WQ-102",
+    "farm_id": "FARM-002",
+    "pond_id": "POND-B1",
+    "temperature_celsius": 29.8,
+    "dissolved_oxygen_mg_l": 4.1,
+    "ph": 7.3,
+    "unionized_ammonia_mg_l": 0.065,
+    "alkalinity_mg_l": 140.0,
+    "turbidity_ntu": 35.0,
+    "timestamp": "2026-11-04T07:00:00Z",
+    "data_source": "mock_sensor"
+  }
+]
+

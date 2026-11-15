@@ -1,0 +1,14 @@
+{
+  "category": "disease_diagnosis",
+  "farm_id": "FARM-MOCK-002",
+  "feature_id": "disease_screening",
+  "workload": "finGuard_core",
+  "contains_farm_telemetry": true,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Pond 4 telemetry: DO is 2.8 mg/L, pH 8.6, Temp 31.5C. Several Asian Seabass show surface gulping and lethargy. What is the immediate biosecurity differential?"
+    }
+  ]
+}
+
