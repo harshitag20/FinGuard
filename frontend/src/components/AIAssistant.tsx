@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Mic, X, Send, Sparkles, Volume2, Loader2, BookOpen, 
-  ShieldCheck, AlertCircle, RefreshCw, Layers, CheckCircle2, Bot, HelpCircle
+  ShieldCheck, AlertCircle, RefreshCw, Layers, CheckCircle2, Bot, HelpCircle,
+  Activity, FlaskConical, Bell
 } from 'lucide-react';
 import { usePond, useTheme, useLanguage, useNavigation } from '../App';
 import { getGeminiAnalysis, speakWithElevenLabs, speakWithFallback } from '../services/aiAssistantService';
@@ -221,36 +222,47 @@ const AIAssistant: React.FC = () => {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-28 right-6 z-[70] w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-2xl shadow-blue-500/30 active:scale-90 transition-all group overflow-hidden"
-        title="FinGuard Farm Agent & Model Advisor"
+        className="fixed bottom-28 right-6 z-[70] w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full flex items-center justify-center p-1 shadow-2xl shadow-blue-500/40 active:scale-90 hover:scale-105 transition-all group overflow-hidden border-2 border-white/90"
+        title="Ask Fin - FinGuard AI Agent"
+        aria-label="Open Fin AI Agent"
       >
-        <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-100 transition-transform rounded-full"></div>
-        <Bot size={24} className="relative z-10" />
+        <img 
+          src="/mascot.png" 
+          alt="Fin Mascot" 
+          className="w-full h-full object-contain rounded-full group-hover:rotate-6 transition-transform"
+        />
+        <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
       </button>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col p-4 sm:p-6 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex flex-col p-3 sm:p-6 animate-in fade-in duration-300">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsOpen(false)} />
       
-      <div className={`mt-auto w-full max-w-md mx-auto rounded-[2.5rem] p-5 shadow-2xl relative animate-in slide-in-from-bottom-20 duration-500 border ${theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
+      <div className={`mt-auto w-full max-w-lg mx-auto rounded-[2.5rem] p-4 sm:p-5 shadow-2xl relative animate-in slide-in-from-bottom-20 duration-500 border ${theme === 'dark' ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-100'}`}>
         
-        {/* Header & Tabs */}
+        {/* Header with Mascot in Top Left */}
         <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-xl text-blue-500">
-              <Bot size={20} />
+          <div className="flex items-center space-x-2.5">
+            {/* Mascot in Top Left */}
+            <div className="relative shrink-0">
+              <img 
+                src="/mascot.png" 
+                alt="Fin Mascot" 
+                className="w-10 h-10 rounded-full object-contain bg-blue-100 p-0.5 border border-blue-200 shadow-sm"
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h3 className={`text-xs font-black uppercase tracking-wider ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>
-                  {activeTab === 'farm_agent' ? `Farm Intelligence [${farmId}]` : 'Governed Model Gateway'}
+                  Fin • {activeTab === 'farm_agent' ? `Farm Intelligence [${farmId}]` : 'Governed Model Gateway'}
                 </h3>
                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
                   agentStatus === 'online' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                 }`}>
-                  {agentStatus === 'online' ? 'Agent Live' : 'Standby / Core Fallback'}
+                  {agentStatus === 'online' ? 'Agent Live' : 'Standby'}
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium">
@@ -296,29 +308,134 @@ const AIAssistant: React.FC = () => {
         )}
 
         {/* Chat Transcript Area */}
-        <div className="max-h-[280px] overflow-y-auto mb-3 space-y-3 no-scrollbar flex flex-col pr-1">
-          {transcript.length === 0 ? (
-            <div className="text-center py-6 space-y-3">
-              <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600">
-                <Sparkles size={24} />
+        <div className="max-h-[380px] sm:max-h-[420px] overflow-y-auto mb-3 space-y-3.5 no-scrollbar flex flex-col pr-1">
+          
+          {/* FIRST MESSAGE: Fin Welcome Greeting with Mascot and Capability Cards */}
+          <div className="flex items-start space-x-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
+            <img 
+              src="/mascot.png" 
+              alt="Fin" 
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-md shrink-0 object-contain bg-blue-50 border border-blue-200 mt-1"
+            />
+
+            <div className={`flex-1 p-3.5 sm:p-4 rounded-3xl rounded-tl-sm border text-xs leading-relaxed shadow-sm ${
+              theme === 'dark' 
+                ? 'bg-slate-800/90 border-slate-700/80 text-slate-200' 
+                : 'bg-white border-slate-100 text-slate-800 shadow-slate-100'
+            }`}>
+              <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center">
+                Hi! I'm <span className="text-blue-600 dark:text-blue-400 mx-1 underline decoration-blue-400 decoration-wavy">Fin</span>, your FinGuard AI Agent!
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1 leading-snug">
+                I help you keep your aquaculture operations healthy, productive, and risk-free. Here's what I can do for you:
+              </p>
+
+              {/* 4 Feature Capability Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2.5">
+                {/* 1. Diagnose */}
+                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
+                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-blue-50/50 border-blue-100'
+                }`}>
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center shrink-0">
+                    <Activity size={14} />
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] leading-tight">
+                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Diagnose fish health</strong>
+                    <span className="text-slate-400">from observations</span>
+                  </div>
+                </div>
+
+                {/* 2. Simulate */}
+                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
+                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-purple-50/50 border-purple-100'
+                }`}>
+                  <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center shrink-0">
+                    <FlaskConical size={14} />
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] leading-tight">
+                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Simulate and</strong>
+                    <span className="text-slate-400">forecast pond risks</span>
+                  </div>
+                </div>
+
+                {/* 3. Research */}
+                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
+                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-emerald-50/50 border-emerald-100'
+                }`}>
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                    <BookOpen size={14} />
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] leading-tight">
+                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Find trusted</strong>
+                    <span className="text-slate-400">research & guidelines</span>
+                  </div>
+                </div>
+
+                {/* 4. Monitor */}
+                <div className={`p-2 rounded-xl border flex items-center space-x-2 ${
+                  theme === 'dark' ? 'bg-slate-900/60 border-slate-700' : 'bg-amber-50/50 border-amber-100'
+                }`}>
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+                    <Bell size={14} />
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] leading-tight">
+                    <strong className="block text-slate-800 dark:text-slate-100 font-bold">Monitor alerts and</strong>
+                    <span className="text-slate-400">suggest actions</span>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  {activeTab === 'farm_agent' ? 'Ask Your Dedicated Farm Agent' : 'Ask General Aquaculture Questions'}
-                </p>
-                <p className={`text-[10px] font-medium italic ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {activeTab === 'farm_agent' 
-                    ? '"Did pond 1 have low oxygen this week?" or "Run research on EUS treatment"' 
-                    : '"What is the optimal water pH for Rohu fish?"'}
-                </p>
+
+              {/* Suggestion prompt & pills */}
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mt-1.5">
+                You can ask me anything, like:
+              </p>
+
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {[
+                  "Check the health of Pond 1",
+                  "Run a 7-day risk simulation",
+                  "Latest research on EMS"
+                ].map((promptText) => (
+                  <button
+                    key={promptText}
+                    type="button"
+                    onClick={() => handleSendMessage(promptText)}
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all active:scale-95 ${
+                      theme === 'dark'
+                        ? 'bg-slate-900/80 border-slate-700 text-blue-300 hover:border-blue-400'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/40'
+                    }`}
+                  >
+                    "{promptText}"
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-[11px] text-slate-700 dark:text-slate-300 font-medium mt-2.5">
+                How would you like to get started today?
+              </p>
+
+              <div className="text-[9px] text-slate-400 text-right mt-1 font-semibold">
+                Just now
               </div>
             </div>
-          ) : (
-            transcript.map((msg, i) => (
-              <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-1`}>
-                <div className={`max-w-[90%] p-3.5 rounded-3xl text-xs leading-relaxed ${
+          </div>
+
+          {/* Subsequent conversation messages */}
+          {transcript.map((msg, i) => (
+            <div key={i} className={`flex items-start space-x-2 ${msg.role === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+              {msg.role === 'ai' ? (
+                <img 
+                  src="/mascot.png" 
+                  alt="Fin" 
+                  className="w-7 h-7 rounded-full shadow-xs shrink-0 object-contain bg-blue-50 border border-blue-200 mt-0.5"
+                />
+              ) : null}
+
+              <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-1 max-w-[85%]`}>
+                <div className={`p-3 rounded-2xl text-xs leading-relaxed ${
                   msg.role === 'user' 
-                    ? 'bg-blue-600 text-white rounded-tr-none shadow-sm' 
+                    ? 'bg-blue-600 text-white rounded-tr-none shadow-sm font-medium' 
                     : (theme === 'dark' ? 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5' : 'bg-slate-50 text-slate-800 rounded-tl-none border border-slate-100')
                 }`}>
                   {msg.text}
@@ -326,7 +443,7 @@ const AIAssistant: React.FC = () => {
 
                 {/* Provenance Badge */}
                 {msg.provenance && (
-                  <div className="flex items-center space-x-1 px-2">
+                  <div className="flex items-center space-x-1 px-1">
                     <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md ${
                       msg.provenance.type === 'VERIFIED_DATA' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
                       msg.provenance.type === 'FARMER_OBSERVATION' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' :
@@ -339,15 +456,15 @@ const AIAssistant: React.FC = () => {
                   </div>
                 )}
               </div>
-            ))
-          )}
+            </div>
+          ))}
 
           {isProcessing && (
-            <div className="flex justify-start">
+            <div className="flex items-center space-x-2 pl-9">
               <div className={`p-3 rounded-2xl rounded-tl-none flex items-center space-x-2 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-50'}`}>
                 <Loader2 size={14} className="animate-spin text-blue-500" />
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                  {activeTab === 'farm_agent' ? 'Farm Agent Querying Memory...' : 'Routing Through Model Gateway...'}
+                  {activeTab === 'farm_agent' ? 'Fin Querying Farm Memory...' : 'Routing Through Model Gateway...'}
                 </span>
               </div>
             </div>
